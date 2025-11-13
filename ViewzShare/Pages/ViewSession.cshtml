@@ -4,14 +4,28 @@
 @using System.Linq
 
 @functions {
-    private static string ResolveGalleryCategory(ApartmentItem item)
+    private static string ResolveGalleryCategory(GalleryAsset asset)
     {
-        if (item is null)
+        if (asset is null)
         {
             return "interior";
         }
 
-        var source = ($"{item.Title} {item.ApartmentId}").ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(asset.Category))
+        {
+            var normalized = asset.Category.Trim().ToLowerInvariant();
+            if (normalized is "exterior" or "facade" or "outside" or "outdoor")
+            {
+                return "exterior";
+            }
+
+            if (normalized is "common" or "shared" or "public" or "lobby")
+            {
+                return "common";
+            }
+        }
+
+        var source = ($"{asset.Title} {asset.Subtitle} {asset.Description} {asset.AssetId}").ToLowerInvariant();
 
         if (source.Contains("חוץ") || source.Contains("חזית") || source.Contains("facade") || source.Contains("exterior") || source.Contains("outside") || source.Contains("outdoor"))
         {
@@ -299,6 +313,13 @@
             color: rgba(255,255,255,0.6);
         }
 
+        .gallery-item-description {
+            margin-top: 6px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.55);
+            line-height: 1.45;
+        }
+
         .gallery-empty {
             margin-top: 8px;
             display: none;
@@ -550,9 +571,33 @@
 
     @{
         var likedItems = Model.Session?.Items ?? new List<ApartmentItem>();
-        var galleryItems = likedItems
+        var likedItemsWithImages = likedItems
             .Where(item => !string.IsNullOrWhiteSpace(item.PlanImageUrl))
-            .Select(item => new { Item = item, Category = ResolveGalleryCategory(item) })
+            .ToList();
+        var configuredGalleryAssets = Model.Session?.GalleryAssets ?? new List<GalleryAsset>();
+        var hasConfiguredGallery = configuredGalleryAssets.Any();
+        List<GalleryAsset> galleryAssets;
+        if (hasConfiguredGallery)
+        {
+            galleryAssets = configuredGalleryAssets;
+        }
+        else
+        {
+            galleryAssets = likedItemsWithImages
+                .Select(item => new GalleryAsset
+                {
+                    AssetId = item.ApartmentId,
+                    Title = item.Title,
+                    ImageUrl = item.PlanImageUrl,
+                    Rooms = item.Rooms,
+                    SizeSqm = item.SizeSqm
+                })
+                .ToList();
+        }
+        var attemptedLegacyGallery = !hasConfiguredGallery && likedItems.Any();
+        var fallbackGalleryHasImages = !hasConfiguredGallery && likedItemsWithImages.Any();
+        var galleryItems = galleryAssets
+            .Select(asset => new { Asset = asset, Category = ResolveGalleryCategory(asset) })
             .ToList();
         var galleryCategories = new List<(string Id, string Label)>
         {
@@ -636,22 +681,34 @@
             <div class="gallery-grid" data-gallery-grid>
                 @foreach (var entry in galleryItems)
                 {
-                    var item = entry.Item;
-                    var displayTitle = !string.IsNullOrWhiteSpace(item.Title) ? item.Title : item.ApartmentId;
+                    var asset = entry.Asset;
+                    var displayTitle = !string.IsNullOrWhiteSpace(asset?.Title)
+                        ? asset!.Title
+                        : (!string.IsNullOrWhiteSpace(asset?.AssetId) ? asset!.AssetId : "תמונה");
                     var metaParts = new List<string> { GetCategoryLabel(entry.Category) };
-                    if (item.Rooms.HasValue)
+                    if (asset?.Rooms.HasValue == true)
                     {
-                        metaParts.Add($"חדרים {item.Rooms.Value}");
+                        metaParts.Add($"חדרים {asset.Rooms.Value}");
                     }
-                    if (item.SizeSqm.HasValue)
+                    if (asset?.SizeSqm.HasValue == true)
                     {
-                        metaParts.Add($"מ\"ר {item.SizeSqm.Value:0.#}");
+                        metaParts.Add($"מ\"ר {asset.SizeSqm.Value:0.#}");
                     }
-                    var metaText = string.Join(" • ", metaParts);
+                    var metaText = string.Join(" • ", metaParts.Where(part => !string.IsNullOrWhiteSpace(part)));
+                    var descriptionParts = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(asset?.Subtitle))
+                    {
+                        descriptionParts.Add(asset!.Subtitle!);
+                    }
+                    if (!string.IsNullOrWhiteSpace(asset?.Description))
+                    {
+                        descriptionParts.Add(asset!.Description!);
+                    }
+                    var descriptionText = string.Join(" • ", descriptionParts);
                     <figure class="gallery-item" data-gallery-item data-category="@entry.Category">
-                        @if (!string.IsNullOrWhiteSpace(item.PlanImageUrl))
+                        @if (!string.IsNullOrWhiteSpace(asset?.ImageUrl))
                         {
-                            <img src="@item.PlanImageUrl" alt="@displayTitle" loading="lazy" decoding="async" />
+                            <img src="@asset!.ImageUrl" alt="@displayTitle" loading="lazy" decoding="async" />
                         }
                         else
                         {
@@ -660,6 +717,10 @@
                         <figcaption>
                             <div class="gallery-item-title">@displayTitle</div>
                             <div class="gallery-item-meta">@metaText</div>
+                            @if (!string.IsNullOrWhiteSpace(descriptionText))
+                            {
+                                <div class="gallery-item-description">@descriptionText</div>
+                            }
                         </figcaption>
                     </figure>
                 }
@@ -670,9 +731,13 @@
                 {
                     <span>לא נמצאו תמונות בקטגוריה שבחרתם.</span>
                 }
+                else if (attemptedLegacyGallery && !fallbackGalleryHasImages)
+                {
+                    <span>הגלריה נשענת על דירות שסומנו, אך אף תוכנית עם תמונה לא זמינה להצגה.</span>
+                }
                 else
                 {
-                    <span>עדיין לא נוספו תמונות גלריה לשיתוף הזה.</span>
+                    <span>עדיין לא נוספו תמונות גלריה לשיתוף הזה — שלחו רשימת <code>galleryAssets</code> נפרדת מהדירות האהובות או ודאו שהיא מכילה פריטים.</span>
                 }
             </div>
         </div>
