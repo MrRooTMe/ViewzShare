@@ -1,0 +1,169 @@
+﻿@page
+@model PrivacyModel
+@{
+    ViewData["Title"] = "Privacy Policy";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>Use this page to detail your site's privacy policy.</p>
+<style>
+    :root {
+        --bg: #1e1f23;
+        --panel: #2a2b31;
+        --panel-2: #32343a;
+        --text: #e8e9ea;
+        --muted: #a1a3a8;
+        --brand: #10a37f;
+        --border: #3a3b40;
+        --radius: 14px;
+        --shadow: 0 4px 20px rgba(0,0,0,0.35);
+    }
+
+    html, body {
+        background: var(--bg);
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", "Rubik", "Noto Sans Hebrew", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text);
+        direction: rtl;
+    }
+
+    .wrap {
+        max-width: 1050px;
+        margin: 60px auto;
+        padding: 0 24px 80px;
+    }
+
+    h1 {
+        font-size: clamp(24px, 3vw, 36px);
+        font-weight: 700;
+        margin-bottom: 8px;
+        background: linear-gradient(90deg, var(--brand), #1ed3aa);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 14px;
+        color: var(--muted);
+        margin-bottom: 32px;
+    }
+
+        .meta .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+        }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--brand);
+        box-shadow: 0 0 10px var(--brand);
+    }
+
+    .grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    }
+
+    .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+        }
+
+    .thumb {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        display: block;
+        background: #111;
+    }
+
+    .body {
+        padding: 14px 16px 18px;
+    }
+
+    .title {
+        font-weight: 700;
+        font-size: 16px;
+        margin-bottom: 6px;
+        color: #fff;
+    }
+
+    .specs {
+        font-size: 13px;
+        color: var(--muted);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .sep {
+        opacity: .4;
+    }
+
+    .actions {
+        margin-top: 14px;
+    }
+
+    .btn {
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, #2f3137, #26282e);
+        color: #e9eaea;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background .15s ease, border-color .15s ease, transform .08s ease;
+    }
+
+        .btn:hover {
+            background: linear-gradient(180deg, #3a3d44, #2f3137);
+            border-color: var(--brand);
+            color: #fff;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+        }
+
+    .empty {
+        background: var(--panel);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+        padding: 32px;
+        color: var(--muted);
+        text-align: center;
+        font-size: 15px;
+    }
+</style>
