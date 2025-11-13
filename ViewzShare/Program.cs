@@ -129,14 +129,8 @@ public class ApartmentItem
 
 public class GalleryAsset
 {
-        public string? AssetId { get; set; }
-        public string? Title { get; set; }
-        public string? Subtitle { get; set; }
-        public string? ImageUrl { get; set; }
         public string? Category { get; set; }
-        public string? Description { get; set; }
-        public float? SizeSqm { get; set; }
-        public int? Rooms { get; set; }
+        public string? ImageUrl { get; set; }
 }
 
 // tiny helper

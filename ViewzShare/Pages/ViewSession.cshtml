@@ -1,49 +1,41 @@
 ﻿@page
 @model ViewSessionModel
+@using System
 @using System.Collections.Generic
 @using System.Linq
 
 @functions {
-    private static string ResolveGalleryCategory(GalleryAsset asset)
+    private static string NormalizeGalleryCategory(GalleryAsset asset)
     {
         if (asset is null)
         {
-            return "interior";
+            return "Interior";
         }
 
-        if (!string.IsNullOrWhiteSpace(asset.Category))
+        var category = asset.Category?.Trim();
+
+        if (string.IsNullOrWhiteSpace(category))
         {
-            var normalized = asset.Category.Trim().ToLowerInvariant();
-            if (normalized is "exterior" or "facade" or "outside" or "outdoor")
-            {
-                return "exterior";
-            }
-
-            if (normalized is "common" or "shared" or "public" or "lobby")
-            {
-                return "common";
-            }
+            return "Interior";
         }
 
-        var source = ($"{asset.Title} {asset.Subtitle} {asset.Description} {asset.AssetId}").ToLowerInvariant();
-
-        if (source.Contains("חוץ") || source.Contains("חזית") || source.Contains("facade") || source.Contains("exterior") || source.Contains("outside") || source.Contains("outdoor"))
+        if (category.Equals("Exterior", StringComparison.OrdinalIgnoreCase))
         {
-            return "exterior";
+            return "Exterior";
         }
 
-        if (source.Contains("לובי") || source.Contains("קומון") || source.Contains("common") || source.Contains("public") || source.Contains("ציבור") || source.Contains("משות"))
+        if (category.Equals("Public", StringComparison.OrdinalIgnoreCase))
         {
-            return "common";
+            return "Public";
         }
 
-        return "interior";
+        return "Interior";
     }
 
     private static string GetCategoryLabel(string category) => category switch
     {
-        "exterior" => "חוץ",
-        "common" => "שטחים משותפים",
+        "Exterior" => "חוץ",
+        "Public" => "שטחים משותפים",
         _ => "פנים"
     };
 }
@@ -594,24 +586,21 @@
             galleryAssets = likedItemsWithImages
                 .Select(item => new GalleryAsset
                 {
-                    AssetId = item.ApartmentId,
-                    Title = item.Title,
                     ImageUrl = item.PlanImageUrl,
-                    Rooms = item.Rooms,
-                    SizeSqm = item.SizeSqm
+                    Category = "Interior"
                 })
                 .ToList();
         }
         var attemptedLegacyGallery = !hasConfiguredGallery && likedItems.Any();
         var fallbackGalleryHasImages = !hasConfiguredGallery && likedItemsWithImages.Any();
         var galleryItems = galleryAssets
-            .Select(asset => new { Asset = asset, Category = ResolveGalleryCategory(asset) })
+            .Select(asset => new { Asset = asset, Category = NormalizeGalleryCategory(asset) })
             .ToList();
         var galleryCategories = new List<(string Id, string Label)>
         {
-            ("interior", "פנים"),
-            ("exterior", "חוץ"),
-            ("common", "שטחים משותפים")
+            ("Interior", "פנים"),
+            ("Exterior", "חוץ"),
+            ("Public", "שטחים משותפים")
         };
         var defaultGalleryCategory = galleryCategories[0].Id;
         var hasGalleryItems = galleryItems.Any();
@@ -690,29 +679,8 @@
                 @foreach (var entry in galleryItems)
                 {
                     var asset = entry.Asset;
-                    var displayTitle = !string.IsNullOrWhiteSpace(asset?.Title)
-                        ? asset!.Title
-                        : (!string.IsNullOrWhiteSpace(asset?.AssetId) ? asset!.AssetId : "תמונה");
-                    var metaParts = new List<string> { GetCategoryLabel(entry.Category) };
-                    if (asset?.Rooms.HasValue == true)
-                    {
-                        metaParts.Add($"חדרים {asset.Rooms.Value}");
-                    }
-                    if (asset?.SizeSqm.HasValue == true)
-                    {
-                        metaParts.Add($"מ\"ר {asset.SizeSqm.Value:0.#}");
-                    }
-                    var metaText = string.Join(" • ", metaParts.Where(part => !string.IsNullOrWhiteSpace(part)));
-                    var descriptionParts = new List<string>();
-                    if (!string.IsNullOrWhiteSpace(asset?.Subtitle))
-                    {
-                        descriptionParts.Add(asset!.Subtitle!);
-                    }
-                    if (!string.IsNullOrWhiteSpace(asset?.Description))
-                    {
-                        descriptionParts.Add(asset!.Description!);
-                    }
-                    var descriptionText = string.Join(" • ", descriptionParts);
+                    var categoryLabel = GetCategoryLabel(entry.Category);
+                    var displayTitle = string.IsNullOrWhiteSpace(categoryLabel) ? "תמונה" : categoryLabel;
                     <figure class="gallery-item" data-gallery-item data-category="@entry.Category">
                         @if (!string.IsNullOrWhiteSpace(asset?.ImageUrl))
                         {
@@ -724,11 +692,7 @@
                         }
                         <figcaption>
                             <div class="gallery-item-title">@displayTitle</div>
-                            <div class="gallery-item-meta">@metaText</div>
-                            @if (!string.IsNullOrWhiteSpace(descriptionText))
-                            {
-                                <div class="gallery-item-description">@descriptionText</div>
-                            }
+                            <div class="gallery-item-meta">@categoryLabel</div>
                         </figcaption>
                     </figure>
                 }

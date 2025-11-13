@@ -19,7 +19,7 @@ Body fields:
 | `splatterUrl` | string? | Optional Gaussian Splatting tour iframe source. |
 | `logoUrl` | string? | Optional project logo. Defaults to `/img/logo.svg`. |
 
-`GalleryAsset` objects support the following fields: `assetId`, `title`, `subtitle`, `description`, `imageUrl`, `category`, `rooms`, and `sizeSqm`. The `category` value can be one of `interior`, `exterior`, or `common` (other values default to `interior`).
+`GalleryAsset` objects support the following fields: `imageUrl` and `category`. The `category` value should be one of `Interior`, `Exterior`, or `Public` (values are case-insensitive and default to `Interior`).
 
 `ApartmentItem` objects remain unchanged to preserve compatibility with existing clients.
 
@@ -44,12 +44,8 @@ Example payload:
   ],
   "galleryAssets": [
     {
-      "assetId": "gallery-01",
-      "title": "Lobby",
-      "subtitle": "חלל כניסה",
-      "description": "Lobby render",
       "imageUrl": "/img/gallery/lobby.jpg",
-      "category": "common"
+      "category": "Public"
     }
   ]
 }
