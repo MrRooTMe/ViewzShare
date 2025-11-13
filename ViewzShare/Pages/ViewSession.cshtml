@@ -322,6 +322,14 @@
             gap: 32px;
         }
 
+        .liked-scroll {
+            max-height: clamp(280px, calc(100svh - 220px), 620px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            padding-inline-end: 6px;
+            scrollbar-gutter: stable;
+        }
+
         .liked-header {
             max-width: 540px;
             margin: 0 auto;
@@ -687,57 +695,59 @@
                 <p class="liked-subtitle">כל התכניות שסומנו במהלך הפגישה מרוכזות כאן בתצוגה אחת נוחה.</p>
             </div>
 
-            @if (likedItems is { Count: > 0 })
-            {
-                <div class="liked-grid">
-                    @foreach (var item in likedItems)
-                    {
-                        var displayTitle = !string.IsNullOrWhiteSpace(item.Title) ? item.Title : item.ApartmentId;
-                        <article class="apt-card">
-                            @if (!string.IsNullOrWhiteSpace(item.PlanImageUrl))
-                            {
-                                <img class="apt-thumb" src="@item.PlanImageUrl" alt="@displayTitle" loading="lazy" decoding="async" />
-                            }
-                            <div class="apt-body">
-                                <h3 class="apt-name">@displayTitle</h3>
-                                <div class="apt-meta">
-                                    @if (item.Rooms.HasValue)
+            <div class="liked-scroll">
+                @if (likedItems is { Count: > 0 })
+                {
+                    <div class="liked-grid">
+                        @foreach (var item in likedItems)
+                        {
+                            var displayTitle = !string.IsNullOrWhiteSpace(item.Title) ? item.Title : item.ApartmentId;
+                            <article class="apt-card">
+                                @if (!string.IsNullOrWhiteSpace(item.PlanImageUrl))
+                                {
+                                    <img class="apt-thumb" src="@item.PlanImageUrl" alt="@displayTitle" loading="lazy" decoding="async" />
+                                }
+                                <div class="apt-body">
+                                    <h3 class="apt-name">@displayTitle</h3>
+                                    <div class="apt-meta">
+                                        @if (item.Rooms.HasValue)
+                                        {
+                                            <span>חדרים @item.Rooms.Value</span>
+                                        }
+                                        @if (item.Rooms.HasValue && item.SizeSqm.HasValue)
+                                        {
+                                            <span class="sep">•</span>
+                                        }
+                                        @if (item.SizeSqm.HasValue)
+                                        {
+                                            <span>מ"ר @item.SizeSqm.Value.ToString("0.#")</span>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(item.PdfUrl))
                                     {
-                                        <span>חדרים @item.Rooms.Value</span>
-                                    }
-                                    @if (item.Rooms.HasValue && item.SizeSqm.HasValue)
-                                    {
-                                        <span class="sep">•</span>
-                                    }
-                                    @if (item.SizeSqm.HasValue)
-                                    {
-                                        <span>מ"ר @item.SizeSqm.Value.ToString("0.#")</span>
+                                        <div class="apt-action">
+                                            <a class="btn" href="@item.PdfUrl" target="_blank" rel="noopener">
+                                                <svg viewBox="0 0 24 24" fill="none">
+                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                                    <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                                    <path d="M12 15V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                                </svg>
+                                                הורדת תוכנית
+                                            </a>
+                                        </div>
                                     }
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(item.PdfUrl))
-                                {
-                                    <div class="apt-action">
-                                        <a class="btn" href="@item.PdfUrl" target="_blank" rel="noopener">
-                                            <svg viewBox="0 0 24 24" fill="none">
-                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                                                <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                                                <path d="M12 15V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                                            </svg>
-                                            הורדת תוכנית
-                                        </a>
-                                    </div>
-                                }
-                            </div>
-                        </article>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="liked-empty">
-                    אין דירות שמורות כרגע — ודאו שקיים token חוקי ב־URL או התחילו לשמור דירות במהלך הסשן.
-                </div>
-            }
+                            </article>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="liked-empty">
+                        אין דירות שמורות כרגע — ודאו שקיים token חוקי ב־URL או התחילו לשמור דירות במהלך הסשן.
+                    </div>
+                }
+            </div>
         </div>
     </section>
 
