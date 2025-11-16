@@ -152,12 +152,15 @@
             scroll-snap-type: none !important;
         }
 
-        .section.gallery-section,
+        .section.gallery-section {
+            padding: 0;
+            align-items: stretch;
+        }
+
         .section.liked-section {
             align-items: flex-start;
         }
 
-        .gallery-wrapper,
         .liked-container {
             width: min(1100px,94vw);
             background: linear-gradient(145deg, rgba(22,24,30,0.92), rgba(31,33,40,0.88));
@@ -456,21 +459,24 @@
             padding: 16px;
         }
 
-        .gallery-item figcaption {
-            padding: 12px 16px 16px;
-        }
+        @@media (max-width: 700px) {
+            .gallery-wrapper,
+            .gallery-stage {
+                min-height: 100vh;
+            }
 
-        .gallery-item-title {
-            font-weight: 700;
-            font-size: 15px;
-            margin-bottom: 6px;
-            color: #fff;
-        }
-
-        .gallery-item-meta {
-            font-size: 13px;
-            color: rgba(255,255,255,0.6);
-        }
+            .gallery-thumbs,
+            .gallery-tabs {
+                position: static;
+                transform: none;
+                bottom: auto;
+                left: auto;
+                right: auto;
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                margin: 16px auto 0;
+            }
 
         .gallery-empty {
             margin-top: 8px;
@@ -485,9 +491,11 @@
             border: 1px dashed rgba(255,255,255,0.1);
         }
 
-            .gallery-empty.show {
-                display: flex;
+            .gallery-stage-nav {
+                width: 44px;
+                height: 44px;
             }
+        }
 
         @media (max-width: 700px) {
             .gallery-wrapper {
@@ -850,10 +858,33 @@
     <!-- SECTION 3: PROJECT GALLERY -->
     <section id="sec3" class="section gallery-section">
         <div class="gallery-wrapper" data-gallery>
-            <div class="gallery-header">
-                <span class="section-eyebrow">גלריה</span>
-                <h2>גלריית הפרויקט</h2>
-                <p>עברו בין קטגוריות שונות כדי לראות זוויות נוספות של הפרויקט.</p>
+            <div class="gallery-stage" data-gallery-stage>
+                <img data-gallery-stage-img alt="" />
+                <div class="gallery-stage-fallback" data-gallery-stage-fallback>
+                    <p>בחרו קטגוריה כדי להציג את התמונות במסך מלא.</p>
+                </div>
+                <button class="gallery-stage-nav prev" type="button" data-gallery-prev aria-label="תמונה קודמת">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </button>
+                <button class="gallery-stage-nav next" type="button" data-gallery-next aria-label="תמונה הבאה">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </button>
+                <div class="gallery-thumbs" data-gallery-thumbs aria-label="תמונות בקטגוריה הנוכחית"></div>
+
+                <div class="gallery-tabs" role="tablist">
+                    @foreach (var category in galleryCategories)
+                    {
+                        var isActive = category.Id == defaultGalleryCategory;
+                        <button type="button"
+                                class="gallery-tab@(isActive ? " active" : string.Empty)"
+                                role="tab"
+                                aria-selected="@(isActive ? "true" : "false")"
+                                data-gallery-tab
+                                data-category="@category.Id">
+                            @category.Label
+                        </button>
+                    }
+                </div>
             </div>
 
             <div class="gallery-stage" data-gallery-stage>
@@ -910,26 +941,7 @@
                         {
                             <div class="gallery-fallback"><span>@displayTitle</span></div>
                         }
-                        <figcaption>
-                            <div class="gallery-item-title">@displayTitle</div>
-                            <div class="gallery-item-meta">@categoryLabel</div>
-                        </figcaption>
                     </figure>
-                }
-            </div>
-
-            <div class="gallery-empty@(hasGalleryItems ? string.Empty : " show")" data-gallery-empty>
-                @if (hasGalleryItems)
-                {
-                    <span>לא נמצאו תמונות בקטגוריה שבחרתם.</span>
-                }
-                else if (attemptedLegacyGallery && !fallbackGalleryHasImages)
-                {
-                    <span>הגלריה נשענת על דירות שסומנו, אך אף תוכנית עם תמונה לא זמינה להצגה.</span>
-                }
-                else
-                {
-                    <span>עדיין לא נוספו תמונות גלריה לשיתוף הזה — שלחו רשימת <code>galleryAssets</code> נפרדת מהדירות האהובות או ודאו שהיא מכילה פריטים.</span>
                 }
             </div>
         </div>
