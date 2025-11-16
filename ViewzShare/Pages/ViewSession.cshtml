@@ -155,9 +155,26 @@
         .section.gallery-section {
             padding: 0;
             align-items: stretch;
-            min-height: 100svh;
-            height: 100svh;
+            min-height: 100vh;
+            height: 100vh;
             overflow: hidden;
+        }
+
+        .gallery-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-height: 100vh;
+            height: 100vh;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            background: transparent;
+            backdrop-filter: none;
+            overflow: hidden;
+            flex: 1 1 auto;
         }
 
         .section.liked-section {
@@ -174,22 +191,7 @@
             backdrop-filter: blur(12px);
         }
 
-        .gallery-wrapper {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            min-height: 100%;
-            height: 100%;
-            padding: 0;
-            border: 0;
-            border-radius: 0;
-            box-shadow: none;
-            background: transparent;
-            backdrop-filter: none;
-            overflow: hidden;
-            flex: 1 1 auto;
-        }
+        
 
         .gallery-header,
         .liked-header {
@@ -229,13 +231,22 @@
             position: relative;
             width: 100%;
             height: 100%;
-            min-height: 100%;
+            min-height: 100vh;
             border-radius: 0;
             overflow: hidden;
             background: radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 60%), #07080b;
             box-shadow: inset 0 0 80px rgba(0,0,0,0.65);
             isolation: isolate;
             flex: 1 1 auto;
+        }
+
+        @@supports (height: 100svh) {
+            .gallery-section,
+            .gallery-wrapper,
+            .gallery-stage {
+                min-height: 100svh;
+                height: 100svh;
+            }
         }
 
         .gallery-stage img[data-gallery-stage-img] {
@@ -285,6 +296,7 @@
             justify-content: center;
             cursor: pointer;
             transition: background .2s ease, border-color .2s ease, transform .1s ease;
+            z-index: 4;
         }
 
             .gallery-stage-nav:hover {
@@ -310,12 +322,27 @@
             right: clamp(12px, 2vw, 32px);
         }
 
-        .gallery-thumbs {
+        .gallery-controls {
             position: absolute;
-            left: 50%;
-            transform: translate(-50%, 0);
-            bottom: clamp(120px, 13vh, 160px);
+            inset: auto 0 clamp(32px, 7vh, 72px);
+            width: 100%;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(16px, 2vh, 24px);
+            padding: 0 24px;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .gallery-thumbs,
+        .gallery-tabs {
+            pointer-events: auto;
+        }
+
+        .gallery-thumbs {
+            display: flex;
+            justify-content: center;
             gap: 12px;
             padding: 10px 18px;
             border-radius: 999px;
@@ -323,9 +350,9 @@
             border: 1px solid rgba(255,255,255,0.08);
             backdrop-filter: blur(18px);
             max-width: min(920px, 92vw);
+            width: 100%;
             overflow-x: auto;
             scrollbar-width: none;
-            z-index: 3;
         }
 
         .gallery-thumbs::-webkit-scrollbar {
@@ -381,7 +408,8 @@
             border-radius: 999px;
             background: rgba(7,8,12,0.8);
             border: 1px solid rgba(255,255,255,0.08);
-            z-index: 3;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .gallery-tab {
@@ -438,23 +466,9 @@
             }
 
         @@media (max-width: 700px) {
-            .gallery-wrapper,
-            .gallery-stage {
-                min-height: 100vh;
-                height: 100vh;
-            }
-
-            .gallery-thumbs,
-            .gallery-tabs {
-                position: static;
-                transform: none;
-                bottom: auto;
-                left: auto;
-                right: auto;
-                width: 100%;
-                justify-content: center;
-                flex-wrap: wrap;
-                margin: 16px auto 0;
+            .gallery-controls {
+                gap: 12px;
+                padding: 0 12px;
             }
 
             .gallery-thumbs {
@@ -468,30 +482,17 @@
                 height: 46px;
             }
 
+            .gallery-tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 100%;
+            }
+
             .gallery-stage-nav {
                 width: 44px;
                 height: 44px;
             }
         }
-
-            .gallery-thumbs,
-            .gallery-tabs {
-                position: static;
-                transform: none;
-                bottom: auto;
-                left: auto;
-                right: auto;
-                width: 100%;
-                justify-content: center;
-                flex-wrap: wrap;
-                margin-top: 12px;
-            }
-
-            .gallery-thumbs {
-                border-radius: 24px;
-                gap: 8px;
-                padding: 10px;
-            }
 
             .gallery-thumb {
                 width: 64px;
@@ -840,21 +841,23 @@
                 <button class="gallery-stage-nav next" type="button" data-gallery-next aria-label="תמונה הבאה">
                     <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
                 </button>
-                <div class="gallery-thumbs" data-gallery-thumbs aria-label="תמונות בקטגוריה הנוכחית"></div>
+                <div class="gallery-controls">
+                    <div class="gallery-thumbs" data-gallery-thumbs aria-label="תמונות בקטגוריה הנוכחית"></div>
 
-                <div class="gallery-tabs" role="tablist">
-                    @foreach (var category in galleryCategories)
-                    {
-                        var isActive = category.Id == defaultGalleryCategory;
-                        <button type="button"
-                                class="gallery-tab@(isActive ? " active" : string.Empty)"
-                                role="tab"
-                                aria-selected="@(isActive ? "true" : "false")"
-                                data-gallery-tab
-                                data-category="@category.Id">
-                            @category.Label
-                        </button>
-                    }
+                    <div class="gallery-tabs" role="tablist">
+                        @foreach (var category in galleryCategories)
+                        {
+                            var isActive = category.Id == defaultGalleryCategory;
+                            <button type="button"
+                                    class="gallery-tab@(isActive ? " active" : string.Empty)"
+                                    role="tab"
+                                    aria-selected="@(isActive ? "true" : "false")"
+                                    data-gallery-tab
+                                    data-category="@category.Id">
+                                @category.Label
+                            </button>
+                        }
+                    </div>
                 </div>
             </div>
 
