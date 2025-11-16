@@ -170,12 +170,23 @@
             gap: clamp(16px, 2vw, 24px);
             width: 100%;
             height: 100%;
+            min-height: min(92vh, 880px);
             border-radius: clamp(var(--radius), 2vw, 20px);
             padding: clamp(18px, 2vw, 28px);
             background: linear-gradient(180deg, rgba(22,24,30,0.92), rgba(16,18,25,0.96));
             border: 1px solid rgba(255,255,255,0.08);
             box-shadow: 0 30px 120px rgba(0,0,0,0.35);
             overflow: hidden;
+            transition: transform .2s ease, box-shadow .2s ease, inset .2s ease, width .2s ease, height .2s ease;
+        }
+
+        .gallery-shell.is-fullscreen {
+            position: fixed;
+            inset: clamp(10px, 3vw, 24px);
+            width: calc(100vw - clamp(20px, 6vw, 48px));
+            height: calc(100vh - clamp(20px, 6vw, 48px));
+            z-index: 9990;
+            box-shadow: 0 40px 160px rgba(0,0,0,0.55);
         }
 
         .section.liked-section {
@@ -229,8 +240,8 @@
         }
 
         .gallery-layout {
-            display: grid;
-            grid-template-rows: 1fr auto;
+            display: flex;
+            flex-direction: column;
             gap: clamp(14px, 1.8vw, 22px);
             height: 100%;
         }
@@ -246,12 +257,13 @@
         .gallery-tabs {
             display: inline-flex;
             gap: 10px;
-            padding: 8px;
+            padding: 8px 10px;
             border-radius: 999px;
             background: rgba(255,255,255,0.04);
             border: 1px solid rgba(255,255,255,0.08);
             backdrop-filter: blur(12px);
             box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+            justify-content: center;
         }
 
         .gallery-tab {
@@ -274,6 +286,7 @@
             position: relative;
             flex: 1 1 auto;
             min-height: 0;
+            height: min(60vh, 560px);
             border-radius: clamp(14px, 1.8vw, 20px);
             overflow: hidden;
             background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.12), rgba(255,255,255,0))
@@ -281,7 +294,10 @@
             display: grid;
             place-items: center;
             isolation: isolate;
-            padding-bottom: 120px;
+        }
+
+        .gallery-shell.is-fullscreen .gallery-hero {
+            height: calc(100% - 190px);
         }
 
         .gallery-preview-img {
@@ -327,19 +343,22 @@
 
         .gallery-bottom {
             position: relative;
-            padding: clamp(12px, 2vw, 18px);
+            padding: clamp(12px, 2vw, 18px) clamp(18px, 3vw, 28px) clamp(14px, 2.4vw, 22px);
             background: linear-gradient(180deg, rgba(7,9,14,0.9) 0%, rgba(7,9,14,0.98) 80%);
             border: 1px solid rgba(255,255,255,0.06);
             border-radius: clamp(12px, 1.4vw, 16px);
             display: grid;
             gap: 12px;
+            justify-items: center;
+            align-items: center;
+            margin-top: auto;
         }
 
         .gallery-thumbs {
             display: flex;
             gap: 10px;
             overflow-x: auto;
-            padding: 4px;
+            padding: 6px 4px 4px;
             scrollbar-width: thin;
         }
 
@@ -370,16 +389,57 @@
             .gallery-thumb:focus-visible { outline: 2px solid rgba(16,163,127,0.65); outline-offset: 2px; }
             .gallery-thumb[hidden] { display: none; }
 
+        .gallery-controls {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: clamp(12px, 2vw, 18px);
+            pointer-events: none;
+        }
+
+        .gallery-arrow-btn,
+        .gallery-fullscreen-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.16);
+            background: rgba(0,0,0,0.35);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: background .15s ease, border-color .15s ease, transform .12s ease;
+            pointer-events: auto;
+        }
+
+            .gallery-arrow-btn:hover,
+            .gallery-fullscreen-btn:hover { background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.28); }
+            .gallery-arrow-btn:active,
+            .gallery-fullscreen-btn:active { transform: translateY(1px); }
+
+        .gallery-fullscreen-btn {
+            position: absolute;
+            bottom: clamp(10px, 1.5vw, 14px);
+            inset-inline-start: 50%;
+            transform: translateX(-50%);
+        }
+
+        .gallery-shell.is-fullscreen .gallery-fullscreen-btn { bottom: clamp(16px, 2vw, 20px); }
+
         @@media (max-width: 900px) {
-            .gallery-shell { padding: clamp(12px, 3vw, 20px); }
+            .gallery-shell { padding: clamp(12px, 3vw, 20px); min-height: min(88vh, 760px); }
             .gallery-tab { padding: 9px 13px; font-size: 13px; }
             .gallery-thumb { width: 112px; height: 76px; }
+            .gallery-shell.is-fullscreen { inset: clamp(8px, 2vw, 14px); }
         }
 
         @@media (max-width: 640px) {
             .gallery-shell { border-radius: 12px; }
             .gallery-tab { padding: 8px 12px; }
             .gallery-toolbar { flex-direction: column; align-items: flex-start; }
+            .gallery-controls { padding: 10px; }
         }
 
         .liked-container {
@@ -739,6 +799,26 @@
                     <div class="gallery-preview-fallback" data-gallery-preview-fallback>
                         <p>בחרו קטגוריה כדי להציג את התמונות במסך מלא.</p>
                     </div>
+                    <div class="gallery-controls" aria-hidden="true">
+                        <button class="gallery-arrow-btn" type="button" data-gallery-prev>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15 6l-6 6 6 6" />
+                            </svg>
+                        </button>
+                        <button class="gallery-arrow-btn" type="button" data-gallery-next>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 6l6 6-6 6" />
+                            </svg>
+                        </button>
+                        <button class="gallery-fullscreen-btn" type="button" data-gallery-fullscreen aria-label="מסך מלא" aria-pressed="false">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 3H4v5" />
+                                <path d="M15 3h5v5" />
+                                <path d="M9 21H4v-5" />
+                                <path d="M15 21h5v-5" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="gallery-bottom">
@@ -941,12 +1021,43 @@
           const galleryRoot = document.querySelector('[data-gallery-root]');
           if (!galleryRoot) return;
 
+          const galleryShell = galleryRoot.closest('.gallery-shell');
           const tabs = Array.from(galleryRoot.querySelectorAll('[data-gallery-tab]'));
           const thumbs = Array.from(galleryRoot.querySelectorAll('[data-gallery-thumb]'));
           const previewImg = galleryRoot.querySelector('[data-gallery-preview-img]');
           const previewFallback = galleryRoot.querySelector('[data-gallery-preview-fallback]');
+          const prevBtn = galleryRoot.querySelector('[data-gallery-prev]');
+          const nextBtn = galleryRoot.querySelector('[data-gallery-next]');
+          const fullscreenBtn = galleryRoot.querySelector('[data-gallery-fullscreen]');
 
           let activeCategory = tabs.find(tab => tab.classList.contains('active'))?.dataset.category || tabs[0]?.dataset.category || '';
+          let activeThumbIndex = 0;
+          let isFullscreen = false;
+
+          function getVisibleThumbs() {
+            return thumbs.filter(thumb => !thumb.hidden && thumb.dataset.image);
+          }
+
+          function setPreviewFromThumb(thumb) {
+            if (thumb && !thumb.hidden && previewImg) {
+              const label = thumb.dataset.label || thumb.dataset.title || 'תמונה';
+              previewImg.src = thumb.dataset.image || '';
+              previewImg.alt = label;
+              previewImg.hidden = false;
+              previewFallback?.setAttribute('hidden', 'hidden');
+
+              const vis = getVisibleThumbs();
+              const idx = vis.indexOf(thumb);
+              if (idx >= 0) {
+                activeThumbIndex = idx;
+              }
+            } else if (previewImg) {
+              previewImg.removeAttribute('src');
+              previewImg.removeAttribute('alt');
+              previewImg.hidden = true;
+              previewFallback?.removeAttribute('hidden');
+            }
+          }
 
           const lightbox = new PhotoSwipeLightbox({
             gallery: '[data-gallery-root]',
@@ -962,19 +1073,35 @@
           lightbox.init();
 
           function updatePreview() {
-            const visibleThumb = thumbs.find(thumb => !thumb.hidden && thumb.dataset.image);
-            if (visibleThumb && previewImg) {
-              previewImg.src = visibleThumb.dataset.image || '';
-              const label = visibleThumb.dataset.label || visibleThumb.dataset.title || 'תמונה';
-              previewImg.alt = label;
-              previewImg.hidden = false;
-              previewFallback?.setAttribute('hidden', 'hidden');
-            } else if (previewImg) {
-              previewImg.removeAttribute('src');
-              previewImg.removeAttribute('alt');
-              previewImg.hidden = true;
-              previewFallback?.removeAttribute('hidden');
+            const visibleThumbs = getVisibleThumbs();
+            if (!visibleThumbs.length) {
+              activeThumbIndex = 0;
+              setPreviewFromThumb(null);
+              return;
             }
+
+            if (activeThumbIndex >= visibleThumbs.length) {
+              activeThumbIndex = 0;
+            }
+
+            setPreviewFromThumb(visibleThumbs[activeThumbIndex]);
+          }
+
+          function movePreview(delta) {
+            const visibleThumbs = getVisibleThumbs();
+            if (!visibleThumbs.length) return;
+            activeThumbIndex = (activeThumbIndex + delta + visibleThumbs.length) % visibleThumbs.length;
+            setPreviewFromThumb(visibleThumbs[activeThumbIndex]);
+          }
+
+          function toggleFullscreen() {
+            if (!galleryShell || !fullscreenBtn) return;
+            isFullscreen = !isFullscreen;
+            galleryShell.classList.toggle('is-fullscreen', isFullscreen);
+            fullscreenBtn.setAttribute('aria-pressed', isFullscreen ? 'true' : 'false');
+            document.documentElement.classList.toggle('no-snap', isFullscreen);
+            document.body.classList.toggle('no-snap', isFullscreen);
+            document.body.style.overflow = isFullscreen ? 'hidden' : '';
           }
 
           function setCategory(category) {
@@ -990,6 +1117,7 @@
               thumb.hidden = !matches;
             });
 
+            activeThumbIndex = 0;
             updatePreview();
             lightbox.refresh();
           }
@@ -999,6 +1127,16 @@
               setCategory(tab.dataset.category || '');
             });
           });
+
+          thumbs.forEach(thumb => {
+            thumb.addEventListener('click', () => {
+              setPreviewFromThumb(thumb);
+            });
+          });
+
+          prevBtn?.addEventListener('click', () => movePreview(-1));
+          nextBtn?.addEventListener('click', () => movePreview(1));
+          fullscreenBtn?.addEventListener('click', toggleFullscreen);
 
           if (tabs.length) {
             setCategory(activeCategory);
