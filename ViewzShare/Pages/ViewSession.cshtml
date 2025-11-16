@@ -398,6 +398,10 @@
             }
 
         .gallery-tabs {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: clamp(32px, 8vh, 72px);
             display: inline-flex;
             gap: 12px;
             padding: 8px;
@@ -482,6 +486,17 @@
                 flex-wrap: wrap;
                 justify-content: center;
                 width: 100%;
+            }
+
+            .gallery-stage-nav {
+                width: 44px;
+                height: 44px;
+            }
+        }
+
+            .gallery-thumb {
+                width: 64px;
+                height: 46px;
             }
 
             .gallery-stage-nav {
