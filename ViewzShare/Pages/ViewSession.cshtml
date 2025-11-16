@@ -263,6 +263,51 @@
             opacity: 1;
         }
 
+        .gallery-stage-fallback,
+        .gallery-stage img[data-gallery-stage-img] {
+            will-change: transform, opacity;
+        }
+
+        .gallery-stage.animate-next .gallery-stage-fallback,
+        .gallery-stage.animate-prev .gallery-stage-fallback,
+        .gallery-stage.animate-fade .gallery-stage-fallback,
+        .gallery-stage.animate-next img[data-gallery-stage-img],
+        .gallery-stage.animate-prev img[data-gallery-stage-img],
+        .gallery-stage.animate-fade img[data-gallery-stage-img] {
+            animation-duration: .48s;
+            animation-fill-mode: both;
+        }
+
+        .gallery-stage.animate-next .gallery-stage-fallback,
+        .gallery-stage.animate-next img[data-gallery-stage-img] {
+            animation-name: gallerySlideInFromRight;
+        }
+
+        .gallery-stage.animate-prev .gallery-stage-fallback,
+        .gallery-stage.animate-prev img[data-gallery-stage-img] {
+            animation-name: gallerySlideInFromLeft;
+        }
+
+        .gallery-stage.animate-fade .gallery-stage-fallback,
+        .gallery-stage.animate-fade img[data-gallery-stage-img] {
+            animation-name: galleryStageFade;
+        }
+
+        @keyframes gallerySlideInFromRight {
+            from { transform: translate3d(26px, 0, 0); opacity: 0; }
+            to { transform: translate3d(0, 0, 0); opacity: 1; }
+        }
+
+        @keyframes gallerySlideInFromLeft {
+            from { transform: translate3d(-26px, 0, 0); opacity: 0; }
+            to { transform: translate3d(0, 0, 0); opacity: 1; }
+        }
+
+        @keyframes galleryStageFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         .gallery-stage-fallback {
             position: absolute;
             inset: 0;
@@ -1069,6 +1114,11 @@
           let filteredItems = [];
           let activeIndex = 0;
           let activeCategory = '';
+          let interactionLocked = false;
+          let animationResetId;
+
+          const ANIMATION_DURATION = 480;
+          const SWIPE_THRESHOLD = 40;
 
           function highlightThumbs() {
             if (!thumbsContainer) return;
@@ -1086,7 +1136,27 @@
             fallbackParagraph.textContent = message;
           }
 
-          function updateStage() {
+          function triggerStageAnimation(direction = 'fade') {
+            if (!stage) return;
+            const animationClass = direction === 'next'
+              ? 'animate-next'
+              : direction === 'prev'
+                ? 'animate-prev'
+                : 'animate-fade';
+
+            stage.classList.remove('animate-next', 'animate-prev', 'animate-fade');
+            void stage.offsetWidth; // restart animation
+            stage.classList.add(animationClass);
+
+            interactionLocked = true;
+            clearTimeout(animationResetId);
+            animationResetId = window.setTimeout(() => {
+              stage.classList.remove('animate-next', 'animate-prev', 'animate-fade');
+              interactionLocked = false;
+            }, ANIMATION_DURATION);
+          }
+
+          function updateStage(direction = 'fade') {
             const current = filteredItems[activeIndex];
             if (!current) {
               stage?.classList.remove('has-image');
@@ -1096,6 +1166,7 @@
               }
               setFallbackMessage('אין תמונות להצגה בקטגוריה זו.');
               highlightThumbs();
+              triggerStageAnimation(direction);
               return;
             }
 
@@ -1118,6 +1189,7 @@
             }
 
             highlightThumbs();
+            triggerStageAnimation(direction);
           }
 
           function renderThumbnails() {
@@ -1140,8 +1212,10 @@
                 btn.appendChild(span);
               }
               btn.addEventListener('click', () => {
+                const previousIndex = activeIndex;
                 activeIndex = idx;
-                updateStage();
+                const direction = idx > previousIndex ? 'next' : 'prev';
+                updateStage(direction);
               });
               thumbsContainer.appendChild(btn);
             });
@@ -1168,19 +1242,26 @@
 
             activeIndex = 0;
             renderThumbnails();
-            updateStage();
+            updateStage('fade');
+          }
+
+          function navigate(delta, direction) {
+            if (!filteredItems.length || interactionLocked) return;
+            const nextIndex = (activeIndex + delta + filteredItems.length) % filteredItems.length;
+            if (nextIndex === activeIndex && filteredItems.length <= 1) {
+              triggerStageAnimation('fade');
+              return;
+            }
+            activeIndex = nextIndex;
+            updateStage(direction);
           }
 
           function showPrev() {
-            if (!filteredItems.length) return;
-            activeIndex = (activeIndex - 1 + filteredItems.length) % filteredItems.length;
-            updateStage();
+            navigate(-1, 'prev');
           }
 
           function showNext() {
-            if (!filteredItems.length) return;
-            activeIndex = (activeIndex + 1) % filteredItems.length;
-            updateStage();
+            navigate(1, 'next');
           }
 
           prevButton?.addEventListener('click', showPrev);
@@ -1205,6 +1286,55 @@
             filteredItems = allItems.slice();
             renderThumbnails();
             updateStage();
+          }
+
+          if (stage) {
+            let startX = 0;
+            let startY = 0;
+            let pointerId = null;
+
+            const resetPointer = () => {
+              if (pointerId !== null) {
+                stage.releasePointerCapture?.(pointerId);
+              }
+              pointerId = null;
+            };
+
+            stage.addEventListener('pointerdown', (event) => {
+              if (interactionLocked) return;
+              if (event.pointerType === 'mouse' && event.button !== 0) return;
+              pointerId = event.pointerId;
+              startX = event.clientX;
+              startY = event.clientY;
+              stage.setPointerCapture?.(pointerId);
+            });
+
+            stage.addEventListener('pointermove', (event) => {
+              if (pointerId === null || event.pointerId !== pointerId) return;
+              const deltaX = event.clientX - startX;
+              const deltaY = Math.abs(event.clientY - startY);
+              if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 10) {
+                event.preventDefault();
+              }
+            }, { passive: false });
+
+            const handlePointerEnd = (event) => {
+              if (pointerId === null || event.pointerId !== pointerId) return;
+              const deltaX = event.clientX - startX;
+              const deltaY = Math.abs(event.clientY - startY);
+              if (Math.abs(deltaX) > SWIPE_THRESHOLD && Math.abs(deltaX) > deltaY) {
+                if (deltaX < 0) {
+                  showNext();
+                } else {
+                  showPrev();
+                }
+              }
+              resetPointer();
+            };
+
+            stage.addEventListener('pointerup', handlePointerEnd);
+            stage.addEventListener('pointercancel', () => resetPointer());
+            stage.addEventListener('pointerleave', () => resetPointer());
           }
         }
 
