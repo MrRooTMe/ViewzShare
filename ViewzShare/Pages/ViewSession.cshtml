@@ -284,7 +284,8 @@
         .gallery-stage-nav {
             position: absolute;
             top: 50%;
-            transform: translateY(-50%);
+            --nav-translate: translate3d(0, -50%, 0);
+            transform: var(--nav-translate);
             width: 56px;
             height: 56px;
             border-radius: 999px;
@@ -305,7 +306,7 @@
             }
 
             .gallery-stage-nav:active {
-                transform: translateY(-50%) scale(0.97);
+                transform: var(--nav-translate) scale(0.97);
             }
 
             .gallery-stage-nav svg {
@@ -315,11 +316,11 @@
             }
 
         .gallery-stage-nav.prev {
-            left: clamp(12px, 2vw, 32px);
+            left: clamp(20px, 4vw, 72px);
         }
 
         .gallery-stage-nav.next {
-            right: clamp(12px, 2vw, 32px);
+            right: clamp(20px, 4vw, 72px);
         }
 
         .gallery-controls {
