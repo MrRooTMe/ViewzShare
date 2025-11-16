@@ -50,6 +50,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <title>@Model.Title</title>
+    <link rel="stylesheet" href="https://unpkg.com/photoswipe@5/dist/photoswipe.css" />
 
     <style>
         :root {
@@ -153,28 +154,28 @@
         }
 
         .section.gallery-section {
-            padding: 0;
+            padding: clamp(20px, 3vw, 32px);
             align-items: stretch;
             min-height: 100vh;
             height: 100vh;
             overflow: hidden;
+            background: radial-gradient(circle at 20% 20%, rgba(16,163,127,0.18), rgba(16,163,127,0)),
+                        radial-gradient(circle at 80% 10%, rgba(255,255,255,0.08), rgba(255,255,255,0));
         }
 
-        .gallery-wrapper {
+        .gallery-shell {
             position: relative;
             display: flex;
             flex-direction: column;
+            gap: clamp(16px, 2vw, 24px);
             width: 100%;
-            min-height: 100vh;
-            height: 100vh;
-            padding: 0;
-            border: 0;
-            border-radius: 0;
-            box-shadow: none;
-            background: transparent;
-            backdrop-filter: none;
+            height: 100%;
+            border-radius: clamp(var(--radius), 2vw, 20px);
+            padding: clamp(18px, 2vw, 28px);
+            background: linear-gradient(180deg, rgba(22,24,30,0.92), rgba(16,18,25,0.96));
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 30px 120px rgba(0,0,0,0.35);
             overflow: hidden;
-            flex: 1 1 auto;
         }
 
         .section.liked-section {
@@ -227,196 +228,135 @@
             color: var(--muted);
         }
 
-        .gallery-stage {
-            position: relative;
-            width: 100%;
+        .gallery-layout {
+            display: grid;
+            grid-template-rows: 1fr auto;
+            gap: clamp(14px, 1.8vw, 22px);
             height: 100%;
-            min-height: 100vh;
-            border-radius: 0;
-            overflow: hidden;
-            background: radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 60%), #07080b;
-            box-shadow: inset 0 0 80px rgba(0,0,0,0.65);
-            isolation: isolate;
-            flex: 1 1 auto;
         }
 
-        @@supports (height: 100svh) {
-            .gallery-section,
-            .gallery-wrapper,
-            .gallery-stage {
-                min-height: 100svh;
-                height: 100svh;
-            }
-        }
-
-        .gallery-stage img[data-gallery-stage-img] {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity .35s ease;
-        }
-
-        .gallery-stage.has-image img[data-gallery-stage-img] {
-            opacity: 1;
-        }
-
-        .gallery-stage-fallback,
-        .gallery-stage img[data-gallery-stage-img] {
-            will-change: transform, opacity;
-        }
-
-        .gallery-stage.animate-next .gallery-stage-fallback,
-        .gallery-stage.animate-prev .gallery-stage-fallback,
-        .gallery-stage.animate-fade .gallery-stage-fallback,
-        .gallery-stage.animate-next img[data-gallery-stage-img],
-        .gallery-stage.animate-prev img[data-gallery-stage-img],
-        .gallery-stage.animate-fade img[data-gallery-stage-img] {
-            animation-duration: .48s;
-            animation-fill-mode: both;
-        }
-
-        .gallery-stage.animate-next .gallery-stage-fallback,
-        .gallery-stage.animate-next img[data-gallery-stage-img] {
-            animation-name: gallerySlideInFromRight;
-        }
-
-        .gallery-stage.animate-prev .gallery-stage-fallback,
-        .gallery-stage.animate-prev img[data-gallery-stage-img] {
-            animation-name: gallerySlideInFromLeft;
-        }
-
-        .gallery-stage.animate-fade .gallery-stage-fallback,
-        .gallery-stage.animate-fade img[data-gallery-stage-img] {
-            animation-name: galleryStageFade;
-        }
-
-        @keyframes gallerySlideInFromRight {
-            from { transform: translate3d(26px, 0, 0); opacity: 0; }
-            to { transform: translate3d(0, 0, 0); opacity: 1; }
-        }
-
-        @keyframes gallerySlideInFromLeft {
-            from { transform: translate3d(-26px, 0, 0); opacity: 0; }
-            to { transform: translate3d(0, 0, 0); opacity: 1; }
-        }
-
-        @keyframes galleryStageFade {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .gallery-stage-fallback {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 32px;
-            font-size: clamp(16px, 2vw, 20px);
-            color: var(--muted);
-            background: linear-gradient(135deg, rgba(6,7,10,0.8), rgba(10,12,17,0.85));
-            pointer-events: none;
-        }
-
-        .gallery-stage.has-image .gallery-stage-fallback {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .gallery-stage-nav {
-            position: absolute;
-            top: 50%;
-            --nav-translate: translate3d(0, -50%, 0);
-            transform: var(--nav-translate);
-            width: 56px;
-            height: 56px;
-            border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(0,0,0,0.45);
-            color: #fff;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background .2s ease, border-color .2s ease, transform .1s ease;
-            z-index: 4;
-        }
-
-            .gallery-stage-nav:hover {
-                background: rgba(0,0,0,0.65);
-                border-color: rgba(255,255,255,0.35);
-            }
-
-            .gallery-stage-nav:active {
-                transform: var(--nav-translate) scale(0.97);
-            }
-
-            .gallery-stage-nav svg {
-                width: 22px;
-                height: 22px;
-                stroke: currentColor;
-            }
-
-        .gallery-stage-nav.prev {
-            left: clamp(20px, 4vw, 72px);
-        }
-
-        .gallery-stage-nav.next {
-            right: clamp(20px, 4vw, 72px);
-        }
-
-        .gallery-controls {
-            position: absolute;
-            inset: auto 0 clamp(32px, 7vh, 72px);
-            width: 100%;
+        .gallery-toolbar {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: clamp(16px, 2vh, 24px);
-            padding: 0 24px;
-            z-index: 3;
-            pointer-events: auto;
+            gap: 10px;
+            text-align: center;
         }
 
-        .gallery-thumbs,
         .gallery-tabs {
-            pointer-events: auto;
+            display: inline-flex;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+        }
+
+        .gallery-tab {
+            border: 0;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: transparent;
+            color: rgba(255,255,255,0.9);
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            transition: background .15s ease, color .15s ease, transform .12s ease;
+        }
+
+            .gallery-tab:hover { background: rgba(255,255,255,0.07); }
+            .gallery-tab:focus-visible { outline: 2px solid rgba(16,163,127,0.65); outline-offset: 2px; }
+            .gallery-tab.active { background: rgba(16,163,127,0.2); color: #fff; transform: translateY(-1px); }
+
+        .gallery-hero {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 0;
+            border-radius: clamp(14px, 1.8vw, 20px);
+            overflow: hidden;
+            background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.12), rgba(255,255,255,0))
+                        , linear-gradient(135deg, rgba(7,9,14,0.92), rgba(8,10,15,0.85));
+            display: grid;
+            place-items: center;
+            isolation: isolate;
+            padding-bottom: 120px;
+        }
+
+        .gallery-preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+            transition: transform .25s ease;
+        }
+
+        .gallery-hero:hover .gallery-preview-img { transform: scale(1.01); }
+
+        .gallery-preview-fallback {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: clamp(18px, 3vw, 32px);
+            text-align: center;
+            color: var(--muted);
+            background: linear-gradient(135deg, rgba(5,6,9,0.85), rgba(7,9,14,0.8));
+        }
+
+        .gallery-overlay-top {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 12% 10%, rgba(16,163,127,0.22), transparent 26%);
+            pointer-events: none;
+        }
+
+        .gallery-meta {
+            position: absolute;
+            top: clamp(14px, 2vw, 18px);
+            left: clamp(16px, 3vw, 28px);
+            background: rgba(0,0,0,0.4);
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #fff;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+        }
+
+        .gallery-bottom {
+            position: relative;
+            padding: clamp(12px, 2vw, 18px);
+            background: linear-gradient(180deg, rgba(7,9,14,0.9) 0%, rgba(7,9,14,0.98) 80%);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: clamp(12px, 1.4vw, 16px);
+            display: grid;
+            gap: 12px;
         }
 
         .gallery-thumbs {
             display: flex;
-            justify-content: center;
-            gap: 12px;
-            padding: 10px 18px;
-            border-radius: 999px;
-            background: rgba(6,7,11,0.7);
-            border: 1px solid rgba(255,255,255,0.08);
-            backdrop-filter: blur(18px);
-            max-width: min(920px, 92vw);
-            width: 100%;
+            gap: 10px;
             overflow-x: auto;
-            scrollbar-width: none;
+            padding: 4px;
+            scrollbar-width: thin;
         }
 
-        .gallery-thumbs::-webkit-scrollbar {
-            display: none;
-        }
+        .gallery-thumbs::-webkit-scrollbar { height: 6px; }
+        .gallery-thumbs::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 999px; }
 
         .gallery-thumb {
-            border: 0;
-            padding: 0;
-            width: 80px;
-            height: 56px;
-            border-radius: 16px;
+            position: relative;
+            display: block;
+            width: 130px;
+            height: 88px;
+            border-radius: 12px;
             overflow: hidden;
-            cursor: pointer;
-            opacity: .6;
-            transition: opacity .15s ease, transform .15s ease, box-shadow .2s ease;
-            background: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+            transition: transform .15s ease, box-shadow .2s ease, border-color .15s ease;
         }
 
             .gallery-thumb img {
@@ -426,119 +366,20 @@
                 display: block;
             }
 
-            .gallery-thumb span {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 100%;
-                height: 100%;
-                font-size: 11px;
-                padding: 6px;
-                color: rgba(255,255,255,0.8);
-                text-align: center;
-                background: rgba(255,255,255,0.04);
-            }
+            .gallery-thumb:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(0,0,0,0.4); border-color: rgba(16,163,127,0.45); }
+            .gallery-thumb:focus-visible { outline: 2px solid rgba(16,163,127,0.65); outline-offset: 2px; }
+            .gallery-thumb[hidden] { display: none; }
 
-            .gallery-thumb.active {
-                opacity: 1;
-                box-shadow: 0 12px 28px rgba(0,0,0,0.45);
-            }
-
-        .gallery-tabs {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: clamp(32px, 8vh, 72px);
-            display: inline-flex;
-            gap: 12px;
-            padding: 8px;
-            border-radius: 999px;
-            background: rgba(7,8,12,0.8);
-            border: 1px solid rgba(255,255,255,0.08);
-            justify-content: center;
-            flex-wrap: wrap;
+        @@media (max-width: 900px) {
+            .gallery-shell { padding: clamp(12px, 3vw, 20px); }
+            .gallery-tab { padding: 9px 13px; font-size: 13px; }
+            .gallery-thumb { width: 112px; height: 76px; }
         }
 
-        .gallery-tab {
-            border: 0;
-            border-radius: 999px;
-            padding: 12px 20px;
-            font-size: 14px;
-            font-weight: 700;
-            background: transparent;
-            color: var(--muted);
-            cursor: pointer;
-            transition: background .18s ease, color .18s ease, transform .1s ease;
-        }
-
-            .gallery-tab:hover {
-                color: #fff;
-                background: rgba(16,163,127,0.12);
-            }
-
-            .gallery-tab:focus-visible {
-                outline: 2px solid rgba(16,163,127,0.65);
-                outline-offset: 2px;
-            }
-
-            .gallery-tab.active {
-                background: linear-gradient(135deg, rgba(16,163,127,0.35), rgba(16,163,127,0.22));
-                color: #fff;
-                box-shadow: 0 8px 22px rgba(16,163,127,0.18);
-            }
-
-        .gallery-grid {
-            display: none;
-        }
-
-        .gallery-item {
-            position: relative;
-            border-radius: calc(var(--radius) - 4px);
-            background: rgba(12,13,18,0.85);
-            border: 1px solid rgba(255,255,255,0.05);
-            overflow: hidden;
-            box-shadow: 0 14px 32px rgba(0,0,0,0.35);
-        }
-
-            .gallery-item.hidden {
-                display: none;
-            }
-
-            .gallery-item img {
-                width: 100%;
-                aspect-ratio: 4 / 3;
-                object-fit: cover;
-                display: block;
-                background: #111;
-            }
-
-        @@media (max-width: 700px) {
-            .gallery-controls {
-                gap: 12px;
-                padding: 0 12px;
-            }
-
-            .gallery-thumbs {
-                border-radius: 24px;
-                gap: 8px;
-                padding: 10px;
-            }
-
-            .gallery-thumb {
-                width: 64px;
-                height: 46px;
-            }
-
-            .gallery-tabs {
-                flex-wrap: wrap;
-                justify-content: center;
-                width: 100%;
-            }
-
-            .gallery-stage-nav {
-                width: 44px;
-                height: 44px;
-            }
+        @@media (max-width: 640px) {
+            .gallery-shell { border-radius: 12px; }
+            .gallery-tab { padding: 8px 12px; }
+            .gallery-toolbar { flex-direction: column; align-items: flex-start; }
         }
 
         .liked-container {
@@ -881,21 +722,26 @@
 
     <!-- SECTION 3: PROJECT GALLERY -->
     <section id="sec3" class="section gallery-section">
-        <div class="gallery-wrapper" data-gallery>
-            <div class="gallery-stage" data-gallery-stage>
-                <img data-gallery-stage-img alt="" />
-                <div class="gallery-stage-fallback" data-gallery-stage-fallback>
-                    <p>בחרו קטגוריה כדי להציג את התמונות במסך מלא.</p>
+        <div class="gallery-shell" data-gallery-root>
+            <div class="gallery-toolbar">
+                <div class="gallery-header">
+                    <span class="section-eyebrow">גלריית פרויקט</span>
+                    <h2>תצוגת מסך מלא</h2>
+                    <p>בחרו קטגוריה, דפדפו בתמונות במסך מלא ותעברו בקלות בעזרת פס התמונות.</p>
                 </div>
-                <button class="gallery-stage-nav prev" type="button" data-gallery-prev aria-label="תמונה קודמת">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                </button>
-                <button class="gallery-stage-nav next" type="button" data-gallery-next aria-label="תמונה הבאה">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                </button>
-                <div class="gallery-controls">
-                    <div class="gallery-thumbs" data-gallery-thumbs aria-label="תמונות בקטגוריה הנוכחית"></div>
+            </div>
 
+            <div class="gallery-layout">
+                <div class="gallery-hero">
+                    <div class="gallery-overlay-top"></div>
+                    <div class="gallery-meta">גלריה</div>
+                    <img class="gallery-preview-img" data-gallery-preview-img alt="" />
+                    <div class="gallery-preview-fallback" data-gallery-preview-fallback>
+                        <p>בחרו קטגוריה כדי להציג את התמונות במסך מלא.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-bottom">
                     <div class="gallery-tabs" role="tablist">
                         @foreach (var category in galleryCategories)
                         {
@@ -910,27 +756,29 @@
                             </button>
                         }
                     </div>
-                </div>
-            </div>
-
-            <div class="gallery-grid" data-gallery-grid hidden aria-hidden="true">
-                @foreach (var entry in galleryItems)
-                {
-                    var asset = entry.Asset;
-                    var categoryLabel = GetCategoryLabel(entry.Category);
-                    var displayTitle = string.IsNullOrWhiteSpace(categoryLabel) ? "תמונה" : categoryLabel;
-                    <figure class="gallery-item"
-                            data-gallery-item
-                            data-category="@entry.Category"
-                            data-image="@asset?.ImageUrl"
-                            data-title="@displayTitle"
-                            data-label="@categoryLabel">
-                        @if (!string.IsNullOrWhiteSpace(asset?.ImageUrl))
+                    <div class="gallery-thumbs" data-gallery-thumbs aria-label="תמונות בקטגוריה הנוכחית">
+                        @foreach (var entry in galleryItems)
                         {
-                            <img src="@asset!.ImageUrl" alt="@displayTitle" loading="lazy" decoding="async" />
+                            var asset = entry.Asset;
+                            var categoryLabel = GetCategoryLabel(entry.Category);
+                            var displayTitle = string.IsNullOrWhiteSpace(categoryLabel) ? "תמונה" : categoryLabel;
+                            <a class="gallery-thumb"
+                               href="@asset?.ImageUrl"
+                               data-gallery-thumb
+                               data-category="@entry.Category"
+                               data-image="@asset?.ImageUrl"
+                               data-title="@displayTitle"
+                               data-label="@categoryLabel"
+                               data-pswp-width="1600"
+                               data-pswp-height="900">
+                                @if (!string.IsNullOrWhiteSpace(asset?.ImageUrl))
+                                {
+                                    <img src="@asset!.ImageUrl" alt="@displayTitle" loading="lazy" decoding="async" />
+                                }
+                            </a>
                         }
-                    </figure>
-                }
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -1088,256 +936,76 @@
         window.scrollPrev = scrollPrev;
         window.scrollNext = scrollNext;
 
-        // Fullscreen gallery controller
-        const galleryRoot = document.querySelector('[data-gallery]');
-        if (galleryRoot) {
-          const tabs = Array.from(galleryRoot.querySelectorAll('[data-gallery-tab]'));
-          const galleryItems = Array.from(galleryRoot.querySelectorAll('[data-gallery-item]'));
-          const stage = galleryRoot.querySelector('[data-gallery-stage]');
-          const stageImg = galleryRoot.querySelector('[data-gallery-stage-img]');
-          const stageFallback = galleryRoot.querySelector('[data-gallery-stage-fallback]');
-          const thumbsContainer = galleryRoot.querySelector('[data-gallery-thumbs]');
-          const prevButton = galleryRoot.querySelector('[data-gallery-prev]');
-          const nextButton = galleryRoot.querySelector('[data-gallery-next]');
-          let fallbackParagraph = stageFallback?.querySelector('p') || null;
+        // PhotoSwipe-powered gallery
+        import('https://unpkg.com/photoswipe@5/dist/photoswipe-lightbox.esm.js').then(({ default: PhotoSwipeLightbox }) => {
+          const galleryRoot = document.querySelector('[data-gallery-root]');
+          if (!galleryRoot) return;
 
-          const allItems = galleryItems.map(item => {
-            const imgEl = item.querySelector('img');
-            return {
-              element: item,
-              category: item.dataset.category || '',
-              src: item.dataset.image || (imgEl ? imgEl.getAttribute('src') : ''),
-              title: item.dataset.title || item.querySelector('.gallery-item-title')?.textContent?.trim() || 'תמונה',
-              label: item.dataset.label || item.querySelector('.gallery-item-meta')?.textContent?.trim() || ''
-            };
+          const tabs = Array.from(galleryRoot.querySelectorAll('[data-gallery-tab]'));
+          const thumbs = Array.from(galleryRoot.querySelectorAll('[data-gallery-thumb]'));
+          const previewImg = galleryRoot.querySelector('[data-gallery-preview-img]');
+          const previewFallback = galleryRoot.querySelector('[data-gallery-preview-fallback]');
+
+          let activeCategory = tabs.find(tab => tab.classList.contains('active'))?.dataset.category || tabs[0]?.dataset.category || '';
+
+          const lightbox = new PhotoSwipeLightbox({
+            gallery: '[data-gallery-root]',
+            children: '[data-gallery-thumb]:not([hidden])',
+            showHideAnimationType: 'zoom',
+            pswpModule: () => import('https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js')
           });
 
-          let filteredItems = [];
-          let activeIndex = 0;
-          let activeCategory = '';
-          let interactionLocked = false;
-          let animationResetId;
+          lightbox.addFilter('itemData', (itemData, element) => {
+            return (!activeCategory || element.dataset.category === activeCategory) ? itemData : false;
+          });
 
-          const ANIMATION_DURATION = 480;
-          const SWIPE_THRESHOLD = 40;
+          lightbox.init();
 
-          function highlightThumbs() {
-            if (!thumbsContainer) return;
-            Array.from(thumbsContainer.children).forEach((btn, idx) => {
-              btn.classList.toggle('active', idx === activeIndex);
-            });
+          function updatePreview() {
+            const visibleThumb = thumbs.find(thumb => !thumb.hidden && thumb.dataset.image);
+            if (visibleThumb && previewImg) {
+              previewImg.src = visibleThumb.dataset.image || '';
+              const label = visibleThumb.dataset.label || visibleThumb.dataset.title || 'תמונה';
+              previewImg.alt = label;
+              previewImg.hidden = false;
+              previewFallback?.setAttribute('hidden', 'hidden');
+            } else if (previewImg) {
+              previewImg.removeAttribute('src');
+              previewImg.removeAttribute('alt');
+              previewImg.hidden = true;
+              previewFallback?.removeAttribute('hidden');
+            }
           }
 
-          function setFallbackMessage(message) {
-            if (!stageFallback) return;
-            if (!fallbackParagraph) {
-              fallbackParagraph = document.createElement('p');
-              stageFallback.appendChild(fallbackParagraph);
-            }
-            fallbackParagraph.textContent = message;
-          }
-
-          function triggerStageAnimation(direction = 'fade') {
-            if (!stage) return;
-            const animationClass = direction === 'next'
-              ? 'animate-next'
-              : direction === 'prev'
-                ? 'animate-prev'
-                : 'animate-fade';
-
-            stage.classList.remove('animate-next', 'animate-prev', 'animate-fade');
-            void stage.offsetWidth; // restart animation
-            stage.classList.add(animationClass);
-
-            interactionLocked = true;
-            clearTimeout(animationResetId);
-            animationResetId = window.setTimeout(() => {
-              stage.classList.remove('animate-next', 'animate-prev', 'animate-fade');
-              interactionLocked = false;
-            }, ANIMATION_DURATION);
-          }
-
-          function updateStage(direction = 'fade') {
-            const current = filteredItems[activeIndex];
-            if (!current) {
-              stage?.classList.remove('has-image');
-              if (stageImg) {
-                stageImg.removeAttribute('src');
-                stageImg.removeAttribute('alt');
-              }
-              setFallbackMessage('אין תמונות להצגה בקטגוריה זו.');
-              highlightThumbs();
-              triggerStageAnimation(direction);
-              return;
-            }
-
-            if (stageImg) {
-              if (current.src) {
-                stageImg.src = current.src;
-                stageImg.alt = current.title || current.label || 'תמונה';
-              } else {
-                stageImg.removeAttribute('src');
-                stageImg.removeAttribute('alt');
-              }
-            }
-
-            if (stage) {
-              stage.classList.toggle('has-image', Boolean(current.src));
-            }
-
-            if (!current.src) {
-              setFallbackMessage(current.title || 'אין תצוגה מקדימה לתמונה זו.');
-            }
-
-            highlightThumbs();
-            triggerStageAnimation(direction);
-          }
-
-          function renderThumbnails() {
-            if (!thumbsContainer) return;
-            thumbsContainer.innerHTML = '';
-            filteredItems.forEach((item, idx) => {
-              const btn = document.createElement('button');
-              btn.type = 'button';
-              btn.className = 'gallery-thumb' + (idx === activeIndex ? ' active' : '');
-              btn.setAttribute('aria-label', item.title || `תמונה ${idx + 1}`);
-              if (item.src) {
-                const img = document.createElement('img');
-                img.src = item.src;
-                img.alt = item.title || item.label || `תמונה ${idx + 1}`;
-                img.loading = 'lazy';
-                btn.appendChild(img);
-              } else {
-                const span = document.createElement('span');
-                span.textContent = item.title || 'ללא תמונה';
-                btn.appendChild(span);
-              }
-              btn.addEventListener('click', () => {
-                const previousIndex = activeIndex;
-                activeIndex = idx;
-                const direction = idx > previousIndex ? 'next' : 'prev';
-                updateStage(direction);
-              });
-              thumbsContainer.appendChild(btn);
-            });
-            highlightThumbs();
-          }
-
-          function applyGalleryFilter(category) {
-            activeCategory = category || '';
-            filteredItems = allItems.filter(item => !activeCategory || item.category === activeCategory);
-
-            galleryItems.forEach(item => {
-              const matches = !activeCategory || item.dataset.category === activeCategory;
-              item.classList.toggle('hidden', !matches);
+          function setCategory(category) {
+            activeCategory = category;
+            tabs.forEach(tab => {
+              const isActive = tab.dataset.category === category;
+              tab.classList.toggle('active', isActive);
+              tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
             });
 
-            if (!filteredItems.length) {
-              activeIndex = 0;
-              if (thumbsContainer) {
-                thumbsContainer.innerHTML = '';
-              }
-              updateStage();
-              return;
-            }
+            thumbs.forEach(thumb => {
+              const matches = !category || thumb.dataset.category === category;
+              thumb.hidden = !matches;
+            });
 
-            activeIndex = 0;
-            renderThumbnails();
-            updateStage('fade');
+            updatePreview();
+            lightbox.refresh();
           }
-
-          function navigate(delta, direction) {
-            if (!filteredItems.length || interactionLocked) return;
-            const nextIndex = (activeIndex + delta + filteredItems.length) % filteredItems.length;
-            if (nextIndex === activeIndex && filteredItems.length <= 1) {
-              triggerStageAnimation('fade');
-              return;
-            }
-            activeIndex = nextIndex;
-            updateStage(direction);
-          }
-
-          function showPrev() {
-            navigate(-1, 'prev');
-          }
-
-          function showNext() {
-            navigate(1, 'next');
-          }
-
-          prevButton?.addEventListener('click', showPrev);
-          nextButton?.addEventListener('click', showNext);
 
           tabs.forEach(tab => {
             tab.addEventListener('click', () => {
-              const category = tab.dataset.category || '';
-              tabs.forEach(btn => {
-                const isActive = btn === tab;
-                btn.classList.toggle('active', isActive);
-                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-              });
-              applyGalleryFilter(category);
-            }, { passive: true });
+              setCategory(tab.dataset.category || '');
+            });
           });
 
-          const initialTab = tabs.find(btn => btn.classList.contains('active')) || tabs[0];
-          if (initialTab) {
-            applyGalleryFilter(initialTab.dataset.category || '');
+          if (tabs.length) {
+            setCategory(activeCategory);
           } else {
-            filteredItems = allItems.slice();
-            renderThumbnails();
-            updateStage();
+            updatePreview();
           }
-
-          if (stage) {
-            let startX = 0;
-            let startY = 0;
-            let pointerId = null;
-
-            const resetPointer = () => {
-              if (pointerId !== null) {
-                stage.releasePointerCapture?.(pointerId);
-              }
-              pointerId = null;
-            };
-
-            stage.addEventListener('pointerdown', (event) => {
-              if (interactionLocked) return;
-              if (event.pointerType === 'mouse' && event.button !== 0) return;
-              pointerId = event.pointerId;
-              startX = event.clientX;
-              startY = event.clientY;
-              stage.setPointerCapture?.(pointerId);
-            });
-
-            stage.addEventListener('pointermove', (event) => {
-              if (pointerId === null || event.pointerId !== pointerId) return;
-              const deltaX = event.clientX - startX;
-              const deltaY = Math.abs(event.clientY - startY);
-              if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 10) {
-                event.preventDefault();
-              }
-            }, { passive: false });
-
-            const handlePointerEnd = (event) => {
-              if (pointerId === null || event.pointerId !== pointerId) return;
-              const deltaX = event.clientX - startX;
-              const deltaY = Math.abs(event.clientY - startY);
-              if (Math.abs(deltaX) > SWIPE_THRESHOLD && Math.abs(deltaX) > deltaY) {
-                if (deltaX < 0) {
-                  showNext();
-                } else {
-                  showPrev();
-                }
-              }
-              resetPointer();
-            };
-
-            stage.addEventListener('pointerup', handlePointerEnd);
-            stage.addEventListener('pointercancel', () => resetPointer());
-            stage.addEventListener('pointerleave', () => resetPointer());
-          }
-        }
+        });
 
         // Hide query parameters after load
         if (window.history.replaceState) {
