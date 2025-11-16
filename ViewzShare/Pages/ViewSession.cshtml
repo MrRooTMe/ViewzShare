@@ -229,18 +229,18 @@
         }
 
         .gallery-layout {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-rows: 1fr auto;
             gap: clamp(14px, 1.8vw, 22px);
             height: 100%;
         }
 
         .gallery-toolbar {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
+            text-align: center;
         }
 
         .gallery-tabs {
@@ -281,6 +281,7 @@
             display: grid;
             place-items: center;
             isolation: isolate;
+            padding-bottom: 120px;
         }
 
         .gallery-preview-img {
@@ -324,14 +325,14 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.35);
         }
 
-        .gallery-thumbs-bar {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
+        .gallery-bottom {
+            position: relative;
             padding: clamp(12px, 2vw, 18px);
-            background: linear-gradient(180deg, rgba(7,9,14,0) 0%, rgba(7,9,14,0.68) 38%, rgba(7,9,14,0.92) 100%);
-            border-top: 1px solid rgba(255,255,255,0.06);
+            background: linear-gradient(180deg, rgba(7,9,14,0.9) 0%, rgba(7,9,14,0.98) 80%);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: clamp(12px, 1.4vw, 16px);
+            display: grid;
+            gap: 12px;
         }
 
         .gallery-thumbs {
@@ -728,20 +729,6 @@
                     <h2>תצוגת מסך מלא</h2>
                     <p>בחרו קטגוריה, דפדפו בתמונות במסך מלא ותעברו בקלות בעזרת פס התמונות.</p>
                 </div>
-                <div class="gallery-tabs" role="tablist">
-                    @foreach (var category in galleryCategories)
-                    {
-                        var isActive = category.Id == defaultGalleryCategory;
-                        <button type="button"
-                                class="gallery-tab@(isActive ? " active" : string.Empty)"
-                                role="tab"
-                                aria-selected="@(isActive ? "true" : "false")"
-                                data-gallery-tab
-                                data-category="@category.Id">
-                            @category.Label
-                        </button>
-                    }
-                </div>
             </div>
 
             <div class="gallery-layout">
@@ -752,29 +739,44 @@
                     <div class="gallery-preview-fallback" data-gallery-preview-fallback>
                         <p>בחרו קטגוריה כדי להציג את התמונות במסך מלא.</p>
                     </div>
-                    <div class="gallery-thumbs-bar">
-                        <div class="gallery-thumbs" data-gallery-thumbs aria-label="תמונות בקטגוריה הנוכחית">
-                            @foreach (var entry in galleryItems)
-                            {
-                                var asset = entry.Asset;
-                                var categoryLabel = GetCategoryLabel(entry.Category);
-                                var displayTitle = string.IsNullOrWhiteSpace(categoryLabel) ? "תמונה" : categoryLabel;
-                                <a class="gallery-thumb"
-                                   href="@asset?.ImageUrl"
-                                   data-gallery-thumb
-                                   data-category="@entry.Category"
-                                   data-image="@asset?.ImageUrl"
-                                   data-title="@displayTitle"
-                                   data-label="@categoryLabel"
-                                   data-pswp-width="1600"
-                                   data-pswp-height="900">
-                                    @if (!string.IsNullOrWhiteSpace(asset?.ImageUrl))
-                                    {
-                                        <img src="@asset!.ImageUrl" alt="@displayTitle" loading="lazy" decoding="async" />
-                                    }
-                                </a>
-                            }
-                        </div>
+                </div>
+
+                <div class="gallery-bottom">
+                    <div class="gallery-tabs" role="tablist">
+                        @foreach (var category in galleryCategories)
+                        {
+                            var isActive = category.Id == defaultGalleryCategory;
+                            <button type="button"
+                                    class="gallery-tab@(isActive ? " active" : string.Empty)"
+                                    role="tab"
+                                    aria-selected="@(isActive ? "true" : "false")"
+                                    data-gallery-tab
+                                    data-category="@category.Id">
+                                @category.Label
+                            </button>
+                        }
+                    </div>
+                    <div class="gallery-thumbs" data-gallery-thumbs aria-label="תמונות בקטגוריה הנוכחית">
+                        @foreach (var entry in galleryItems)
+                        {
+                            var asset = entry.Asset;
+                            var categoryLabel = GetCategoryLabel(entry.Category);
+                            var displayTitle = string.IsNullOrWhiteSpace(categoryLabel) ? "תמונה" : categoryLabel;
+                            <a class="gallery-thumb"
+                               href="@asset?.ImageUrl"
+                               data-gallery-thumb
+                               data-category="@entry.Category"
+                               data-image="@asset?.ImageUrl"
+                               data-title="@displayTitle"
+                               data-label="@categoryLabel"
+                               data-pswp-width="1600"
+                               data-pswp-height="900">
+                                @if (!string.IsNullOrWhiteSpace(asset?.ImageUrl))
+                                {
+                                    <img src="@asset!.ImageUrl" alt="@displayTitle" loading="lazy" decoding="async" />
+                                }
+                            </a>
+                        }
                     </div>
                 </div>
             </div>
