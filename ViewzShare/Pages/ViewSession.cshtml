@@ -152,12 +152,35 @@
             scroll-snap-type: none !important;
         }
 
-        .section.gallery-section,
+        .section.gallery-section {
+            padding: 0;
+            align-items: stretch;
+            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .gallery-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-height: 100vh;
+            height: 100vh;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            background: transparent;
+            backdrop-filter: none;
+            overflow: hidden;
+            flex: 1 1 auto;
+        }
+
         .section.liked-section {
             align-items: flex-start;
         }
 
-        .gallery-wrapper,
         .liked-container {
             width: min(1100px,94vw);
             background: linear-gradient(145deg, rgba(22,24,30,0.92), rgba(31,33,40,0.88));
@@ -168,11 +191,7 @@
             backdrop-filter: blur(12px);
         }
 
-        .gallery-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
+        
 
         .gallery-header,
         .liked-header {
@@ -208,22 +227,193 @@
             color: var(--muted);
         }
 
+        .gallery-stage {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 100vh;
+            border-radius: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 60%), #07080b;
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.65);
+            isolation: isolate;
+            flex: 1 1 auto;
+        }
+
+        @@supports (height: 100svh) {
+            .gallery-section,
+            .gallery-wrapper,
+            .gallery-stage {
+                min-height: 100svh;
+                height: 100svh;
+            }
+        }
+
+        .gallery-stage img[data-gallery-stage-img] {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity .35s ease;
+        }
+
+        .gallery-stage.has-image img[data-gallery-stage-img] {
+            opacity: 1;
+        }
+
+        .gallery-stage-fallback {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 32px;
+            font-size: clamp(16px, 2vw, 20px);
+            color: var(--muted);
+            background: linear-gradient(135deg, rgba(6,7,10,0.8), rgba(10,12,17,0.85));
+        }
+
+        .gallery-stage.has-image .gallery-stage-fallback {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .gallery-stage-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 56px;
+            height: 56px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.45);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background .2s ease, border-color .2s ease, transform .1s ease;
+            z-index: 4;
+        }
+
+            .gallery-stage-nav:hover {
+                background: rgba(0,0,0,0.65);
+                border-color: rgba(255,255,255,0.35);
+            }
+
+            .gallery-stage-nav:active {
+                transform: translateY(-50%) scale(0.97);
+            }
+
+            .gallery-stage-nav svg {
+                width: 22px;
+                height: 22px;
+                stroke: currentColor;
+            }
+
+        .gallery-stage-nav.prev {
+            left: clamp(12px, 2vw, 32px);
+        }
+
+        .gallery-stage-nav.next {
+            right: clamp(12px, 2vw, 32px);
+        }
+
+        .gallery-controls {
+            position: absolute;
+            inset: auto 0 clamp(32px, 7vh, 72px);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(16px, 2vh, 24px);
+            padding: 0 24px;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .gallery-thumbs,
+        .gallery-tabs {
+            pointer-events: auto;
+        }
+
+        .gallery-thumbs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 10px 18px;
+            border-radius: 999px;
+            background: rgba(6,7,11,0.7);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(18px);
+            max-width: min(920px, 92vw);
+            width: 100%;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .gallery-thumbs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .gallery-thumb {
+            border: 0;
+            padding: 0;
+            width: 80px;
+            height: 56px;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            opacity: .6;
+            transition: opacity .15s ease, transform .15s ease, box-shadow .2s ease;
+            background: rgba(255,255,255,0.08);
+        }
+
+            .gallery-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            .gallery-thumb span {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                height: 100%;
+                font-size: 11px;
+                padding: 6px;
+                color: rgba(255,255,255,0.8);
+                text-align: center;
+                background: rgba(255,255,255,0.04);
+            }
+
+            .gallery-thumb.active {
+                opacity: 1;
+                box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+            }
+
         .gallery-tabs {
             display: inline-flex;
             gap: 12px;
-            align-self: center;
-            padding: 6px;
+            padding: 8px;
             border-radius: 999px;
-            background: rgba(15,17,22,0.85);
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(7,8,12,0.8);
+            border: 1px solid rgba(255,255,255,0.08);
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .gallery-tab {
             border: 0;
             border-radius: 999px;
-            padding: 10px 18px;
+            padding: 12px 20px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             background: transparent;
             color: var(--muted);
             cursor: pointer;
@@ -247,9 +437,7 @@
             }
 
         .gallery-grid {
-            display: grid;
-            gap: 18px;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            display: none;
         }
 
         .gallery-item {
@@ -259,20 +447,13 @@
             border: 1px solid rgba(255,255,255,0.05);
             overflow: hidden;
             box-shadow: 0 14px 32px rgba(0,0,0,0.35);
-            transition: transform .2s ease, box-shadow .2s ease;
         }
 
             .gallery-item.hidden {
                 display: none;
             }
 
-            .gallery-item:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 18px 36px rgba(0,0,0,0.45);
-            }
-
-            .gallery-item img,
-            .gallery-fallback {
+            .gallery-item img {
                 width: 100%;
                 aspect-ratio: 4 / 3;
                 object-fit: cover;
@@ -280,54 +461,34 @@
                 background: #111;
             }
 
-        .gallery-fallback {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255,255,255,0.6);
-            font-size: 15px;
-            padding: 16px;
-        }
-
-        .gallery-item figcaption {
-            padding: 12px 16px 16px;
-        }
-
-        .gallery-item-title {
-            font-weight: 700;
-            font-size: 15px;
-            margin-bottom: 6px;
-            color: #fff;
-        }
-
-        .gallery-item-meta {
-            font-size: 13px;
-            color: rgba(255,255,255,0.6);
-        }
-
-        .gallery-item-description {
-            margin-top: 6px;
-            font-size: 13px;
-            color: rgba(255,255,255,0.55);
-            line-height: 1.45;
-        }
-
-        .gallery-empty {
-            margin-top: 8px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            min-height: 120px;
-            color: var(--muted);
-            font-size: 15px;
-            background: rgba(12,13,18,0.75);
-            border-radius: calc(var(--radius) - 6px);
-            border: 1px dashed rgba(255,255,255,0.1);
-        }
-
-            .gallery-empty.show {
-                display: flex;
+        @@media (max-width: 700px) {
+            .gallery-controls {
+                gap: 12px;
+                padding: 0 12px;
             }
+
+            .gallery-thumbs {
+                border-radius: 24px;
+                gap: 8px;
+                padding: 10px;
+            }
+
+            .gallery-thumb {
+                width: 64px;
+                height: 46px;
+            }
+
+            .gallery-tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 100%;
+            }
+
+            .gallery-stage-nav {
+                width: 44px;
+                height: 44px;
+            }
+        }
 
         .liked-container {
             display: flex;
@@ -654,62 +815,54 @@
     <!-- SECTION 3: PROJECT GALLERY -->
     <section id="sec3" class="section gallery-section">
         <div class="gallery-wrapper" data-gallery>
-            <div class="gallery-header">
-                <span class="section-eyebrow">גלריה</span>
-                <h2>גלריית הפרויקט</h2>
-                <p>עברו בין קטגוריות שונות כדי לראות זוויות נוספות של הפרויקט.</p>
+            <div class="gallery-stage" data-gallery-stage>
+                <img data-gallery-stage-img alt="" />
+                <div class="gallery-stage-fallback" data-gallery-stage-fallback>
+                    <p>בחרו קטגוריה כדי להציג את התמונות במסך מלא.</p>
+                </div>
+                <button class="gallery-stage-nav prev" type="button" data-gallery-prev aria-label="תמונה קודמת">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </button>
+                <button class="gallery-stage-nav next" type="button" data-gallery-next aria-label="תמונה הבאה">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </button>
+                <div class="gallery-controls">
+                    <div class="gallery-thumbs" data-gallery-thumbs aria-label="תמונות בקטגוריה הנוכחית"></div>
+
+                    <div class="gallery-tabs" role="tablist">
+                        @foreach (var category in galleryCategories)
+                        {
+                            var isActive = category.Id == defaultGalleryCategory;
+                            <button type="button"
+                                    class="gallery-tab@(isActive ? " active" : string.Empty)"
+                                    role="tab"
+                                    aria-selected="@(isActive ? "true" : "false")"
+                                    data-gallery-tab
+                                    data-category="@category.Id">
+                                @category.Label
+                            </button>
+                        }
+                    </div>
+                </div>
             </div>
 
-            <div class="gallery-tabs" role="tablist">
-                @foreach (var category in galleryCategories)
-                {
-                    var isActive = category.Id == defaultGalleryCategory;
-                    <button type="button"
-                            class="gallery-tab@(isActive ? " active" : string.Empty)"
-                            role="tab"
-                            aria-selected="@(isActive ? "true" : "false")"
-                            data-gallery-tab
-                            data-category="@category.Id">
-                        @category.Label
-                    </button>
-                }
-            </div>
-
-            <div class="gallery-grid" data-gallery-grid>
+            <div class="gallery-grid" data-gallery-grid hidden aria-hidden="true">
                 @foreach (var entry in galleryItems)
                 {
                     var asset = entry.Asset;
                     var categoryLabel = GetCategoryLabel(entry.Category);
                     var displayTitle = string.IsNullOrWhiteSpace(categoryLabel) ? "תמונה" : categoryLabel;
-                    <figure class="gallery-item" data-gallery-item data-category="@entry.Category">
+                    <figure class="gallery-item"
+                            data-gallery-item
+                            data-category="@entry.Category"
+                            data-image="@asset?.ImageUrl"
+                            data-title="@displayTitle"
+                            data-label="@categoryLabel">
                         @if (!string.IsNullOrWhiteSpace(asset?.ImageUrl))
                         {
                             <img src="@asset!.ImageUrl" alt="@displayTitle" loading="lazy" decoding="async" />
                         }
-                        else
-                        {
-                            <div class="gallery-fallback"><span>@displayTitle</span></div>
-                        }
-                        <figcaption>
-                            <div class="gallery-item-title">@displayTitle</div>
-                            <div class="gallery-item-meta">@categoryLabel</div>
-                        </figcaption>
                     </figure>
-                }
-            </div>
-
-            <div class="gallery-empty@(hasGalleryItems ? string.Empty : " show")" data-gallery-empty>
-                @if (hasGalleryItems)
-                {
-                    <span>לא נמצאו תמונות בקטגוריה שבחרתם.</span>
-                }
-                else if (attemptedLegacyGallery && !fallbackGalleryHasImages)
-                {
-                    <span>הגלריה נשענת על דירות שסומנו, אך אף תוכנית עם תמונה לא זמינה להצגה.</span>
-                }
-                else
-                {
-                    <span>עדיין לא נוספו תמונות גלריה לשיתוף הזה — שלחו רשימת <code>galleryAssets</code> נפרדת מהדירות האהובות או ודאו שהיא מכילה פריטים.</span>
                 }
             </div>
         </div>
@@ -866,24 +1019,149 @@
         window.scrollPrev = scrollPrev;
         window.scrollNext = scrollNext;
 
-        // Simple gallery tab controller
+        // Fullscreen gallery controller
         const galleryRoot = document.querySelector('[data-gallery]');
         if (galleryRoot) {
           const tabs = Array.from(galleryRoot.querySelectorAll('[data-gallery-tab]'));
           const galleryItems = Array.from(galleryRoot.querySelectorAll('[data-gallery-item]'));
-          const galleryEmpty = galleryRoot.querySelector('[data-gallery-empty]');
+          const stage = galleryRoot.querySelector('[data-gallery-stage]');
+          const stageImg = galleryRoot.querySelector('[data-gallery-stage-img]');
+          const stageFallback = galleryRoot.querySelector('[data-gallery-stage-fallback]');
+          const thumbsContainer = galleryRoot.querySelector('[data-gallery-thumbs]');
+          const prevButton = galleryRoot.querySelector('[data-gallery-prev]');
+          const nextButton = galleryRoot.querySelector('[data-gallery-next]');
+          let fallbackParagraph = stageFallback?.querySelector('p') || null;
+
+          const allItems = galleryItems.map(item => {
+            const imgEl = item.querySelector('img');
+            return {
+              element: item,
+              category: item.dataset.category || '',
+              src: item.dataset.image || (imgEl ? imgEl.getAttribute('src') : ''),
+              title: item.dataset.title || item.querySelector('.gallery-item-title')?.textContent?.trim() || 'תמונה',
+              label: item.dataset.label || item.querySelector('.gallery-item-meta')?.textContent?.trim() || ''
+            };
+          });
+
+          let filteredItems = [];
+          let activeIndex = 0;
+          let activeCategory = '';
+
+          function highlightThumbs() {
+            if (!thumbsContainer) return;
+            Array.from(thumbsContainer.children).forEach((btn, idx) => {
+              btn.classList.toggle('active', idx === activeIndex);
+            });
+          }
+
+          function setFallbackMessage(message) {
+            if (!stageFallback) return;
+            if (!fallbackParagraph) {
+              fallbackParagraph = document.createElement('p');
+              stageFallback.appendChild(fallbackParagraph);
+            }
+            fallbackParagraph.textContent = message;
+          }
+
+          function updateStage() {
+            const current = filteredItems[activeIndex];
+            if (!current) {
+              stage?.classList.remove('has-image');
+              if (stageImg) {
+                stageImg.removeAttribute('src');
+                stageImg.removeAttribute('alt');
+              }
+              setFallbackMessage('אין תמונות להצגה בקטגוריה זו.');
+              highlightThumbs();
+              return;
+            }
+
+            if (stageImg) {
+              if (current.src) {
+                stageImg.src = current.src;
+                stageImg.alt = current.title || current.label || 'תמונה';
+              } else {
+                stageImg.removeAttribute('src');
+                stageImg.removeAttribute('alt');
+              }
+            }
+
+            if (stage) {
+              stage.classList.toggle('has-image', Boolean(current.src));
+            }
+
+            if (!current.src) {
+              setFallbackMessage(current.title || 'אין תצוגה מקדימה לתמונה זו.');
+            }
+
+            highlightThumbs();
+          }
+
+          function renderThumbnails() {
+            if (!thumbsContainer) return;
+            thumbsContainer.innerHTML = '';
+            filteredItems.forEach((item, idx) => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'gallery-thumb' + (idx === activeIndex ? ' active' : '');
+              btn.setAttribute('aria-label', item.title || `תמונה ${idx + 1}`);
+              if (item.src) {
+                const img = document.createElement('img');
+                img.src = item.src;
+                img.alt = item.title || item.label || `תמונה ${idx + 1}`;
+                img.loading = 'lazy';
+                btn.appendChild(img);
+              } else {
+                const span = document.createElement('span');
+                span.textContent = item.title || 'ללא תמונה';
+                btn.appendChild(span);
+              }
+              btn.addEventListener('click', () => {
+                activeIndex = idx;
+                updateStage();
+              });
+              thumbsContainer.appendChild(btn);
+            });
+            highlightThumbs();
+          }
 
           function applyGalleryFilter(category) {
-            let visible = 0;
+            activeCategory = category || '';
+            filteredItems = allItems.filter(item => !activeCategory || item.category === activeCategory);
+
             galleryItems.forEach(item => {
-              const matches = !category || item.dataset.category === category;
+              const matches = !activeCategory || item.dataset.category === activeCategory;
               item.classList.toggle('hidden', !matches);
-              if (matches) visible++;
             });
-            if (galleryEmpty) {
-              galleryEmpty.classList.toggle('show', visible === 0);
+
+            if (!filteredItems.length) {
+              activeIndex = 0;
+              if (thumbsContainer) {
+                thumbsContainer.innerHTML = '';
+              }
+              updateStage();
+              return;
             }
+
+            activeIndex = 0;
+            renderThumbnails();
+            updateStage();
           }
+
+          function showPrev() {
+            if (!filteredItems.length) return;
+            activeIndex = (activeIndex - 1 + filteredItems.length) % filteredItems.length;
+            updateStage();
+          }
+
+          function showNext() {
+            if (!filteredItems.length) return;
+            activeIndex = (activeIndex + 1) % filteredItems.length;
+            updateStage();
+          }
+
+          prevButton?.addEventListener('click', showPrev);
+          nextButton?.addEventListener('click', showNext);
 
           tabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -900,8 +1178,10 @@
           const initialTab = tabs.find(btn => btn.classList.contains('active')) || tabs[0];
           if (initialTab) {
             applyGalleryFilter(initialTab.dataset.category || '');
-          } else if (!galleryItems.length && galleryEmpty) {
-            galleryEmpty.classList.add('show');
+          } else {
+            filteredItems = allItems.slice();
+            renderThumbnails();
+            updateStage();
           }
         }
 
