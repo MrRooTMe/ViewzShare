@@ -138,6 +138,13 @@
             box-shadow: 0 40px 160px rgba(0,0,0,0.55);
         }
 
+        .fotorama__nav,
+        .fotorama__arr,
+        .fotorama__fullscreen-icon {
+            display: block;
+            opacity: 1;
+        }
+
         .section.liked-section {
             align-items: flex-start;
         }

@@ -3,6 +3,7 @@
 @using System
 @using System.Collections.Generic
 @using System.Linq
+@using System.Text.Json
 
 @functions {
     private static string NormalizeGalleryCategory(GalleryAsset asset)
@@ -50,8 +51,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <title>@Model.Title</title>
+    <!-- jQuery (required by Fotorama) -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"
+            integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8="
+            crossorigin="anonymous"></script>
+
+    <!-- Fotorama CSS + JS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.min.js"></script>
     <link rel="stylesheet" href="~/css/view-session.css" asp-append-version="true" />
 </head>
 <body>
@@ -145,32 +152,46 @@
                 </div>
             </div>
 
-            <div class="gallery-layout">
-                @foreach (var category in galleryCategories)
-                {
-                    var categoryItems = galleryItems.Where(entry => entry.Category == category.Id).ToList();
-                    if (categoryItems.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    <div class="gallery-category">
-                        <h3>@category.Label</h3>
-                        <div class="fotorama"
-                             data-nav="thumbs"
-                             data-width="100%"
-                             data-maxheight="600px">
-                            @foreach (var entry in categoryItems)
-                            {
-                                var asset = entry.Asset;
-                                if (!string.IsNullOrWhiteSpace(asset?.ImageUrl))
-                                {
-                                    <img src="@asset!.ImageUrl" alt="@GetCategoryLabel(entry.Category)" />
-                                }
-                            }
-                        </div>
+            <div class="gallery-layout" data-gallery-root>
+                <div class="gallery-toolbar-tabs">
+                    <div class="gallery-tabs" role="tablist" aria-label="סינון קטגוריות גלריה">
+                        @for (int i = 0; i < galleryCategories.Count; i++)
+                        {
+                            var category = galleryCategories[i];
+                            var isActive = i == 0;
+                            <button type="button"
+                                    class="gallery-tab @(isActive ? "active" : string.Empty)"
+                                    data-gallery-tab
+                                    data-category="@category.Id"
+                                    aria-selected="@(isActive ? "true" : "false")">
+                                <span class="tab-label-he">@category.Label</span>
+                                <span class="tab-label-en">@category.Id</span>
+                            </button>
+                        }
                     </div>
-                }
+                </div>
+
+                <div class="gallery-category">
+                    <h3>גלריה</h3>
+                    <!-- Fotorama is a jQuery plugin; without jQuery loading first it stayed static with no controls or fullscreen. -->
+                    <div class="fotorama"
+                         data-nav="thumbs"
+                         data-allowfullscreen="native"
+                         data-width="100%"
+                         data-maxheight="720"
+                         data-fit="contain">
+                        @foreach (var entry in galleryItems)
+                        {
+                            var asset = entry.Asset;
+                            if (!string.IsNullOrWhiteSpace(asset?.ImageUrl))
+                            {
+                                <img src="@asset!.ImageUrl"
+                                     data-category="@entry.Category"
+                                     alt="@GetCategoryLabel(entry.Category)" />
+                            }
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -242,6 +263,53 @@
         </div>
     </section>
 
+    <script>
+        (() => {
+            const frames = @Html.Raw(JsonSerializer.Serialize(
+                galleryItems
+                    .Where(entry => !string.IsNullOrWhiteSpace(entry.Asset?.ImageUrl))
+                    .Select(entry => new
+                    {
+                        img = entry.Asset!.ImageUrl,
+                        thumb = entry.Asset.ImageUrl,
+                        category = entry.Category,
+                        alt = GetCategoryLabel(entry.Category)
+                    })));
+
+            const $fotoramaEl = $('.fotorama');
+            if (!$fotoramaEl.length || !frames.length) {
+                return;
+            }
+
+            $fotoramaEl.fotorama();
+            const fotorama = $fotoramaEl.data('fotorama');
+            if (!fotorama) {
+                return;
+            }
+
+            const tabs = $('[data-gallery-tab]');
+
+            const loadCategory = (category) => {
+                const filtered = category ? frames.filter(frame => frame.category === category) : frames;
+                const toLoad = filtered.length ? filtered : frames;
+                fotorama.load(toLoad.map(frame => ({
+                    img: frame.img,
+                    thumb: frame.thumb,
+                    caption: frame.alt
+                })));
+            };
+
+            tabs.on('click', function () {
+                tabs.removeClass('active').attr('aria-selected', 'false');
+                const $btn = $(this);
+                $btn.addClass('active').attr('aria-selected', 'true');
+                loadCategory($btn.data('category'));
+            });
+
+            const initialCategory = tabs.filter('.active').data('category') || frames[0]?.category || '';
+            loadCategory(initialCategory);
+        })();
+    </script>
     <script src="~/js/view-session.js" asp-append-version="true"></script>
 </body>
 </html>
