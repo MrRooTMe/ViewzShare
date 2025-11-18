@@ -3,6 +3,8 @@
 @using System
 @using System.Collections.Generic
 @using System.Linq
+@using System.Text.Json
+@using System.Text.Json.Serialization
 
 @functions {
     private static string NormalizeGalleryCategory(GalleryAsset asset)
@@ -86,6 +88,7 @@
         }
         var galleryItems = galleryAssets
             .Select(asset => new { Asset = asset, Category = NormalizeGalleryCategory(asset) })
+            .Where(x => !string.IsNullOrWhiteSpace(x.Asset?.ImageUrl))
             .ToList();
         var galleryCategories = new List<(string Id, string Label)>
         {
@@ -93,6 +96,23 @@
             ("Exterior", "חוץ"),
             ("Public", "שטחים משותפים")
         };
+
+        var groupedGallery = galleryItems
+            .GroupBy(item => item.Category)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(item => new
+                {
+                    img = item.Asset!.ImageUrl,
+                    caption = GetCategoryLabel(item.Category)
+                })
+                .ToList());
+
+        var galleryJson = JsonSerializer.Serialize(groupedGallery, new JsonSerializerOptions
+        {
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        });
     }
 
     <div class="logo">
@@ -151,9 +171,14 @@
                         <p>בחרו קטגוריה, דפדפו בתמונות במסך מלא ותעברו בקלות בעזרת פס התמונות.</p>
                     </div>
                     <div class="gallery-tabs" role="group" aria-label="קטגוריות גלריה">
+                        @{
+                            var firstCategory = true;
+                        }
                         @foreach (var category in galleryCategories)
                         {
-                            <button class="gallery-tab" type="button">
+                            var isActive = firstCategory;
+                            firstCategory = false;
+                            <button class="gallery-tab@(isActive ? " is-active" : string.Empty)" type="button" data-gallery-category="@category.Id">
                                 <span aria-hidden="true">@category.Id</span>
                                 <span class="sr-only">@category.Label</span>
                             </button>
@@ -161,8 +186,9 @@
                     </div>
                 </div>
 
-                <div class="gallery-hero">
-                    <div class="fotorama"
+                    <div class="gallery-hero">
+                    <div id="main-fotorama"
+                         class="fotorama"
                          data-nav="thumbs"
                          data-allowfullscreen="native"
                          data-width="100%"
@@ -264,6 +290,45 @@
         </div>
     </section>
 
+    <script>
+        window.galleryData = @Html.Raw(galleryJson);
+
+        $(function () {
+            var $f = $('#main-fotorama').fotorama();
+            var fotorama = $f.data('fotorama');
+
+            function setActiveButton(category) {
+                $('[data-gallery-category]').removeClass('is-active');
+                $('[data-gallery-category="' + category + '"]').addClass('is-active');
+            }
+
+            var defaultCategory = 'Interior';
+            if (window.galleryData && window.galleryData[defaultCategory]) {
+                fotorama.load(window.galleryData[defaultCategory]);
+                setActiveButton(defaultCategory);
+            } else if (window.galleryData) {
+                var firstCategoryKey = Object.keys(window.galleryData)[0];
+                if (firstCategoryKey) {
+                    defaultCategory = firstCategoryKey;
+                    fotorama.load(window.galleryData[firstCategoryKey]);
+                    setActiveButton(defaultCategory);
+                }
+            }
+
+            $('[data-gallery-category]').on('click', function (e) {
+                e.preventDefault();
+
+                var category = $(this).data('gallery-category');
+                if (!window.galleryData || !window.galleryData[category]) {
+                    return;
+                }
+
+                setActiveButton(category);
+
+                fotorama.load(window.galleryData[category]);
+            });
+        });
+    </script>
     <script src="~/js/view-session.js" asp-append-version="true"></script>
 </body>
 </html>
