@@ -50,8 +50,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <title>@Model.Title</title>
+    <!-- jQuery (required by Fotorama) -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"
+            integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8="
+            crossorigin="anonymous"></script>
+
+    <!-- Fotorama CSS + JS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.min.js"></script>
     <link rel="stylesheet" href="~/css/view-session.css" asp-append-version="true" />
 </head>
 <body>
@@ -137,40 +143,56 @@
     <!-- SECTION 3: PROJECT GALLERY -->
     <section id="sec3" class="section gallery-section">
         <div class="gallery-shell">
-            <div class="gallery-toolbar">
-                <div class="gallery-header">
-                    <span class="section-eyebrow">גלריית פרויקט</span>
-                    <h2>תצוגת מסך מלא</h2>
-                    <p>בחרו קטגוריה, דפדפו בתמונות במסך מלא ותעברו בקלות בעזרת פס התמונות.</p>
-                </div>
-            </div>
-
             <div class="gallery-layout">
-                @foreach (var category in galleryCategories)
-                {
-                    var categoryItems = galleryItems.Where(entry => entry.Category == category.Id).ToList();
-                    if (categoryItems.Count == 0)
-                    {
-                        continue;
-                    }
+                <div class="gallery-toolbar">
+                    <div class="gallery-header">
+                        <span class="section-eyebrow">גלריית פרויקט</span>
+                        <h2>תצוגת מסך מלא</h2>
+                        <p>בחרו קטגוריה, דפדפו בתמונות במסך מלא ותעברו בקלות בעזרת פס התמונות.</p>
+                    </div>
+                    <div class="gallery-tabs" role="group" aria-label="קטגוריות גלריה">
+                        @foreach (var category in galleryCategories)
+                        {
+                            <button class="gallery-tab" type="button">
+                                <span aria-hidden="true">@category.Id</span>
+                                <span class="sr-only">@category.Label</span>
+                            </button>
+                        }
+                    </div>
+                </div>
 
-                    <div class="gallery-category">
-                        <h3>@category.Label</h3>
-                        <div class="fotorama"
-                             data-nav="thumbs"
-                             data-width="100%"
-                             data-maxheight="600px">
-                            @foreach (var entry in categoryItems)
+                <div class="gallery-hero">
+                    <div class="fotorama"
+                         data-nav="thumbs"
+                         data-allowfullscreen="native"
+                         data-width="100%"
+                         data-maxheight="720"
+                         data-fit="contain">
+                        @* Fotorama depends on jQuery; without it the plugin stayed uninitialized, leaving a single static image with hidden controls and no fullscreen *@
+                        @if (hasConfiguredGallery && galleryAssets is { Count: > 0 })
+                        {
+                            foreach (var asset in galleryAssets)
                             {
-                                var asset = entry.Asset;
                                 if (!string.IsNullOrWhiteSpace(asset?.ImageUrl))
                                 {
-                                    <img src="@asset!.ImageUrl" alt="@GetCategoryLabel(entry.Category)" />
+                                    var categoryLabel = GetCategoryLabel(NormalizeGalleryCategory(asset));
+                                    <img src="@asset!.ImageUrl" alt="@categoryLabel" />
                                 }
                             }
-                        </div>
+                        }
+                        else if (likedItemsWithImages is { Count: > 0 })
+                        {
+                            var interiorLabel = GetCategoryLabel("Interior");
+                            foreach (var item in likedItemsWithImages)
+                            {
+                                if (!string.IsNullOrWhiteSpace(item.PlanImageUrl))
+                                {
+                                    <img src="@item.PlanImageUrl" alt="@interiorLabel" />
+                                }
+                            }
+                        }
                     </div>
-                }
+                </div>
             </div>
         </div>
     </section>
