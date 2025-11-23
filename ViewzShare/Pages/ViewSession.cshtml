@@ -296,24 +296,41 @@
         $(function () {
             var $f = $('#main-fotorama').fotorama();
             var fotorama = $f.data('fotorama');
+            var initialLoadDelayMs = 3000;
 
             function setActiveButton(category) {
                 $('[data-gallery-category]').removeClass('is-active');
                 $('[data-gallery-category="' + category + '"]').addClass('is-active');
             }
 
+            function loadCategory(category) {
+                if (!window.galleryData || !window.galleryData[category]) {
+                    return false;
+                }
+
+                setActiveButton(category);
+                fotorama.load(window.galleryData[category]);
+                return true;
+            }
+
             var defaultCategory = 'Interior';
-            if (window.galleryData && window.galleryData[defaultCategory]) {
-                fotorama.load(window.galleryData[defaultCategory]);
-                setActiveButton(defaultCategory);
-            } else if (window.galleryData) {
+
+            setTimeout(function () {
+                if (!window.galleryData) {
+                    return;
+                }
+
+                if (window.galleryData[defaultCategory]) {
+                    loadCategory(defaultCategory);
+                    return;
+                }
+
                 var firstCategoryKey = Object.keys(window.galleryData)[0];
                 if (firstCategoryKey) {
                     defaultCategory = firstCategoryKey;
-                    fotorama.load(window.galleryData[firstCategoryKey]);
-                    setActiveButton(defaultCategory);
+                    loadCategory(firstCategoryKey);
                 }
-            }
+            }, initialLoadDelayMs);
 
             $('[data-gallery-category]').on('click', function (e) {
                 e.preventDefault();
@@ -323,9 +340,7 @@
                     return;
                 }
 
-                setActiveButton(category);
-
-                fotorama.load(window.galleryData[category]);
+                loadCategory(category);
             });
         });
     </script>
