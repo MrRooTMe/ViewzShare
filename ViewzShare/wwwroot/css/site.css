@@ -1,0 +1,94 @@
+/* Landing Page Styles */
+
+.landing-hero {
+    text-align: center;
+    padding: 100px 20px 60px;
+    background: radial-gradient(circle at 50% 0%, rgba(41, 151, 255, 0.15), transparent 60%);
+}
+
+z-index: 10;
+}
+
+.card-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    background: #111;
+    transition: transform 0.5s ease;
+}
+
+.project-card:hover .card-thumb {
+    transform: scale(1.05);
+}
+
+.card-content {
+    padding: 24px;
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+.card-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--success-color);
+    background: rgba(48, 209, 88, 0.1);
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.action-link {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.action-link svg {
+    transition: transform 0.2s ease;
+}
+
+.project-card:hover .action-link svg {
+    transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+    .landing-title {
+        font-size: 42px;
+    }
+
+    .landing-subtitle {
+        font-size: 18px;
+    }
+}

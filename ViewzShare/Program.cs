@@ -29,6 +29,7 @@ var store = new ConcurrentDictionary<string, SessionDto>();
 
 SharedStore.Instance = store; // add this line (and make Instance settable)
 
+app.UseMiddleware<TrafficLoggingMiddleware>();
 
 
 app.MapPost("/api/session", (CreateSessionDto dto, HttpContext http) =>
@@ -140,4 +141,43 @@ static class ResultsExtensions
 		where TKey : notnull
 		=> dict.TryGetValue(key, out value!);
 }
+
+
+public class TrafficLoggingMiddleware
+{
+	private readonly RequestDelegate _next;
+	private readonly ILogger<TrafficLoggingMiddleware> _logger;
+
+	public TrafficLoggingMiddleware(RequestDelegate next, ILogger<TrafficLoggingMiddleware> logger)
+	{
+		_next = next;
+		_logger = logger;
+	}
+
+	public async Task Invoke(HttpContext context)
+	{
+		long requestBytes = context.Request.ContentLength ?? 0;
+
+		// Read response body size
+		var originalBody = context.Response.Body;
+		using var newBody = new MemoryStream();
+		context.Response.Body = newBody;
+
+		await _next(context);
+
+		newBody.Seek(0, SeekOrigin.Begin);
+		long responseBytes = newBody.Length;
+
+		// Log total traffic
+		double totalKb = (requestBytes + responseBytes) / 1024.0;
+
+		_logger.LogInformation($"Traffic: {totalKb:F2} KB - {context.Request.Method} {context.Request.Path}");
+
+		// Write response back
+		newBody.Seek(0, SeekOrigin.Begin);
+		await newBody.CopyToAsync(originalBody);
+		context.Response.Body = originalBody;
+	}
+}
+
 

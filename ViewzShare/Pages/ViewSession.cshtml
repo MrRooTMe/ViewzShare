@@ -9,28 +9,11 @@
 @functions {
     private static string NormalizeGalleryCategory(GalleryAsset asset)
     {
-        if (asset is null)
-        {
-            return "Interior";
-        }
-
+        if (asset is null) return "Interior";
         var category = asset.Category?.Trim();
-
-        if (string.IsNullOrWhiteSpace(category))
-        {
-            return "Interior";
-        }
-
-        if (category.Equals("Exterior", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Exterior";
-        }
-
-        if (category.Equals("Public", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Public";
-        }
-
+        if (string.IsNullOrWhiteSpace(category)) return "Interior";
+        if (category.Equals("Exterior", StringComparison.OrdinalIgnoreCase)) return "Exterior";
+        if (category.Equals("Public", StringComparison.OrdinalIgnoreCase)) return "Public";
         return "Interior";
     }
 
@@ -42,7 +25,7 @@
     };
 }
 @{
-    Layout = null; // full-screen page without site layout
+    Layout = null;
     ViewData["Title"] = Model.Title;
 }
 
@@ -50,46 +33,40 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>@Model.Title</title>
-    <!-- jQuery (required by Fotorama) -->
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"
-            integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8="
-            crossorigin="anonymous"></script>
-
-    <!-- Fotorama CSS + JS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.min.js"></script>
+    
+    <!-- Design System & Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&family=Rubik:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/view-session.css" asp-append-version="true" />
+    
+    <!-- Swiper.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 </head>
 <body>
+    <!-- Project Logo -->
+    <img src="@Model.LogoUrl" alt="Project Logo" class="project-logo" onerror="this.style.display='none'" />
 
     @{
         var likedItems = Model.Session?.Items ?? new List<ApartmentItem>();
-        var likedItemsWithImages = likedItems
-            .Where(item => !string.IsNullOrWhiteSpace(item.PlanImageUrl))
-            .ToList();
+        var likedItemsWithImages = likedItems.Where(item => !string.IsNullOrWhiteSpace(item.PlanImageUrl)).ToList();
         var configuredGalleryAssets = Model.Session?.GalleryAssets ?? new List<GalleryAsset>();
         var hasConfiguredGallery = configuredGalleryAssets.Any();
-        List<GalleryAsset> galleryAssets;
-        if (hasConfiguredGallery)
-        {
-            galleryAssets = configuredGalleryAssets;
-        }
-        else
-        {
-            galleryAssets = likedItemsWithImages
-                .Select(item => new GalleryAsset
-                {
-                    ImageUrl = item.PlanImageUrl,
-                    Category = "Interior"
-                })
-                .ToList();
-        }
+        
+        List<GalleryAsset> galleryAssets = hasConfiguredGallery 
+            ? configuredGalleryAssets 
+            : likedItemsWithImages.Select(item => new GalleryAsset { ImageUrl = item.PlanImageUrl, Category = "Interior" }).ToList();
+
         var galleryItems = galleryAssets
             .Select(asset => new { Asset = asset, Category = NormalizeGalleryCategory(asset) })
             .Where(x => !string.IsNullOrWhiteSpace(x.Asset?.ImageUrl))
             .ToList();
+
         var galleryCategories = new List<(string Id, string Label)>
         {
             ("Interior", "פנים"),
@@ -101,12 +78,8 @@
             .GroupBy(item => item.Category)
             .ToDictionary(
                 g => g.Key,
-                g => g.Select(item => new
-                {
-                    img = item.Asset!.ImageUrl,
-                    caption = GetCategoryLabel(item.Category)
-                })
-                .ToList());
+                g => g.Select(item => new { img = item.Asset!.ImageUrl, caption = GetCategoryLabel(item.Category) }).ToList()
+            );
 
         var galleryJson = JsonSerializer.Serialize(groupedGallery, new JsonSerializerOptions
         {
@@ -115,234 +88,131 @@
         });
     }
 
-    <div class="logo">
-        <img src="@Model.LogoUrl" alt="Project Logo" />
-    </div>
-
-
-    <div class="nav-arrows" aria-label="ניווט בין מקטעים">
-        <button class="arrow" type="button" data-scroll-prev title="למעלה" aria-label="למעלה">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    <!-- Floating Navigation -->
+    <div class="nav-arrows">
+        <button class="arrow-btn" id="prevBtn" aria-label="Previous Section">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
         </button>
-        <button class="arrow" type="button" data-scroll-next title="למטה" aria-label="למטה">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M18 9l-6 6-6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <button class="arrow-btn" id="nextBtn" aria-label="Next Section">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
     </div>
 
-    <!-- SECTION 1: MOVIE AS BACKGROUND -->
-    <section id="sec1" class="section">
-        <video class="bg-media" src="@Model.MovieUrl" autoplay muted loop playsinline preload="auto"></video>
-        <div class="overlay"></div>
-        <div class="content">
-            <h2>@Model.Session.ProjectId</h2>
-        </div>
-    </section>
+    <div class="snap-container" id="mainScroller">
+        
+        <!-- SECTION 1: Hero Movie -->
+        <section class="section hero-section" id="sec1">
+            <video class="hero-video" src="@Model.MovieUrl" autoplay muted loop playsinline></video>
+            <div class="hero-content fade-in">
+                <h1 class="hero-title">@Model.Session.ProjectId</h1>
+                <p style="font-size: 20px; color: rgba(255,255,255,0.8);">חוויה אימרסיבית</p>
+            </div>
+        </section>
 
-    <!-- SECTION 2: SPLATTER AS BACKGROUND -->
-    <section id="sec2" class="section">
-        @if (!string.IsNullOrWhiteSpace(Model.SplatterUrl))
-        {
-            <div class="bg-frame-wrap">
-                <iframe src="@Model.SplatterUrl" allow="fullscreen; xr-spatial-tracking; gyroscope; accelerometer"></iframe>
-            </div>
-            <div class="overlay"></div>
-            <div class="content">
-                <h2>סיור תלת מימד</h2>
-                <p> לחץ כדי להפעיל אינטראקציה</p>
-            </div>
-        }
-        else
-        {
-            <div class="content">
-                <h2>סיור תלת־ממדי (Gaussian Splatting)</h2>
-                <p class="muted-text">לא סופק קישור splatter — הוסיפו ‎?splat=URL לשורת הכתובת.</p>
-            </div>
-        }
-    </section>
-
-    <!-- SECTION 3: PROJECT GALLERY -->
-    <section id="sec3" class="section gallery-section">
-        <div class="gallery-shell">
-            <div class="gallery-layout">
-                <div class="gallery-toolbar">
-                    <div class="gallery-header">
-                        <span class="section-eyebrow">גלריית פרויקט</span>
-                        <h2>תצוגת מסך מלא</h2>
-                        <p>בחרו קטגוריה, דפדפו בתמונות במסך מלא ותעברו בקלות בעזרת פס התמונות.</p>
+        <!-- SECTION 2: 3D Splatter -->
+        <section class="section splatter-section" id="sec2">
+            @if (!string.IsNullOrWhiteSpace(Model.SplatterUrl))
+            {
+                <div class="splatter-container">
+                    <iframe class="splatter-frame" src="@Model.SplatterUrl" allow="fullscreen; xr-spatial-tracking; gyroscope; accelerometer"></iframe>
+                    <div class="splatter-overlay" id="splatterOverlay">
+                        <div class="interaction-prompt" onclick="enableSplatter()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                            <span>לחץ לאינטראקציה בתלת מימד</span>
+                        </div>
                     </div>
-                    <div class="gallery-tabs" role="group" aria-label="קטגוריות גלריה">
-                        @{
-                            var firstCategory = true;
-                        }
-                        @foreach (var category in galleryCategories)
+                </div>
+            }
+            else
+            {
+                <div class="hero-content">
+                    <h2>סיור תלת מימד לא זמין</h2>
+                    <p>אנא ספק כתובת URL תקינה.</p>
+                </div>
+            }
+        </section>
+
+        <!-- SECTION 3: Gallery -->
+        <section class="section gallery-section" id="sec3">
+            <div class="gallery-container">
+                <!-- Swiper -->
+                <div class="swiper mySwiper2">
+                    <div class="swiper-wrapper" id="galleryWrapper">
+                        <!-- Slides injected via JS -->
+                    </div>
+                </div>
+                
+                <!-- Floating Controls -->
+                <div class="gallery-controls-floating">
+                    <div class="gallery-categories">
+                        @foreach (var cat in galleryCategories)
                         {
-                            var isActive = firstCategory;
-                            firstCategory = false;
-                            <button class="gallery-tab@(isActive ? " is-active" : string.Empty)" type="button" data-gallery-category="@category.Id">
-                                <span aria-hidden="true">@category.Id</span>
-                                <span class="sr-only">@category.Label</span>
+                            <button class="category-btn @(cat.Id == "Interior" ? "active" : "")" 
+                                    onclick="loadGalleryCategory('@cat.Id', this)">
+                                @cat.Label
                             </button>
                         }
                     </div>
-                </div>
-
-                    <div class="gallery-hero">
-                    <div id="main-fotorama"
-                         class="fotorama"
-                         data-nav="thumbs"
-                         data-allowfullscreen="native"
-                         data-width="100%"
-                         data-maxheight="720"
-                         data-fit="contain">
-                        @* Fotorama depends on jQuery; without it the plugin stayed uninitialized, leaving a single static image with hidden controls and no fullscreen *@
-                        @if (hasConfiguredGallery && galleryAssets is { Count: > 0 })
-                        {
-                            foreach (var asset in galleryAssets)
-                            {
-                                if (!string.IsNullOrWhiteSpace(asset?.ImageUrl))
-                                {
-                                    var categoryLabel = GetCategoryLabel(NormalizeGalleryCategory(asset));
-                                    <img src="@asset!.ImageUrl" alt="@categoryLabel" />
-                                }
-                            }
-                        }
-                        else if (likedItemsWithImages is { Count: > 0 })
-                        {
-                            var interiorLabel = GetCategoryLabel("Interior");
-                            foreach (var item in likedItemsWithImages)
-                            {
-                                if (!string.IsNullOrWhiteSpace(item.PlanImageUrl))
-                                {
-                                    <img src="@item.PlanImageUrl" alt="@interiorLabel" />
-                                }
-                            }
-                        }
+                    
+                    <div thumbsSlider="" class="swiper mySwiper gallery-thumbs-wrapper">
+                        <div class="swiper-wrapper" id="thumbsWrapper">
+                            <!-- Thumbs injected via JS -->
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- SECTION 4: LIKED APARTMENTS -->
-    <section id="sec4" class="section liked-section">
-        <div class="liked-container">
-            <div class="liked-header">
-                <span class="section-eyebrow">תיק הלקוח</span>
-                <h2 class="liked-title">דירות שאהבתי</h2>
-                <p class="liked-subtitle">כל התכניות שסומנו במהלך הפגישה מרוכזות כאן בתצוגה אחת נוחה.</p>
-            </div>
+        <!-- SECTION 4: Liked Apartments -->
+        <section class="section liked-section" id="sec4">
+            <div class="liked-content">
+                <div class="liked-header">
+                    <h2>האוסף שלך</h2>
+                    <p>תוכניות ודירות ששמרת</p>
+                </div>
 
-            <div class="liked-scroll">
-                @if (likedItems is { Count: > 0 })
+                @if (likedItems.Any())
                 {
                     <div class="liked-grid">
                         @foreach (var item in likedItems)
                         {
-                            var displayTitle = !string.IsNullOrWhiteSpace(item.Title) ? item.Title : item.ApartmentId;
-                            <article class="apt-card">
+                            var title = !string.IsNullOrWhiteSpace(item.Title) ? item.Title : item.ApartmentId;
+                            <div class="liked-card">
                                 @if (!string.IsNullOrWhiteSpace(item.PlanImageUrl))
                                 {
-                                    <div class="apt-thumb-frame">
-                                        <img class="apt-thumb" src="@item.PlanImageUrl" alt="@displayTitle" loading="lazy" decoding="async" />
-                                    </div>
+                                    <img src="@item.PlanImageUrl" class="card-image" loading="lazy" alt="@title" />
                                 }
-                                <div class="apt-body">
-                                    <h3 class="apt-name">@displayTitle</h3>
-                                    <div class="apt-meta">
-                                        @if (item.Rooms.HasValue)
-                                        {
-                                            <span>חדרים @item.Rooms.Value</span>
-                                        }
-                                        @if (item.Rooms.HasValue && item.SizeSqm.HasValue)
-                                        {
-                                            <span class="sep">•</span>
-                                        }
-                                        @if (item.SizeSqm.HasValue)
-                                        {
-                                            <span>מ"ר @item.SizeSqm.Value.ToString("0.#")</span>
-                                        }
+                                <div class="card-body">
+                                    <div class="card-title">@title</div>
+                                    <div class="card-meta">
+                                        @if (item.Rooms.HasValue) { <span>@item.Rooms חדרים</span> }
+                                        @if (item.SizeSqm.HasValue) { <span>@item.SizeSqm מ"ר</span> }
                                     </div>
                                     @if (!string.IsNullOrWhiteSpace(item.PdfUrl))
                                     {
-                                        <div class="apt-action">
-                                            <a class="btn" href="@item.PdfUrl" target="_blank" rel="noopener">
-                                                <svg viewBox="0 0 24 24" fill="none">
-                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                                                    <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                                                    <path d="M12 15V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                                                </svg>
-                                                הורדת תוכנית
-                                            </a>
-                                        </div>
+                                        <a href="@item.PdfUrl" target="_blank" class="download-btn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                                            הורד תוכנית
+                                        </a>
                                     }
                                 </div>
-                            </article>
+                            </div>
                         }
                     </div>
                 }
                 else
                 {
-                    <div class="liked-empty">
-                        אין דירות שמורות כרגע — ודאו שקיים token חוקי ב־URL או התחילו לשמור דירות במהלך הסשן.
+                    <div class="empty-state" style="text-align: center; color: var(--text-secondary);">
+                        <p>אין פריטים שמורים בסשן זה.</p>
                     </div>
                 }
             </div>
-        </div>
-    </section>
+        </section>
+
+    </div>
 
     <script>
         window.galleryData = @Html.Raw(galleryJson);
-
-        $(function () {
-            var $f = $('#main-fotorama').fotorama();
-            var fotorama = $f.data('fotorama');
-            var initialLoadDelayMs = 3000;
-
-            function setActiveButton(category) {
-                $('[data-gallery-category]').removeClass('is-active');
-                $('[data-gallery-category="' + category + '"]').addClass('is-active');
-            }
-
-            function loadCategory(category) {
-                if (!window.galleryData || !window.galleryData[category]) {
-                    return false;
-                }
-
-                setActiveButton(category);
-                fotorama.load(window.galleryData[category]);
-                return true;
-            }
-
-            var defaultCategory = 'Interior';
-
-            setTimeout(function () {
-                if (!window.galleryData) {
-                    return;
-                }
-
-                if (window.galleryData[defaultCategory]) {
-                    loadCategory(defaultCategory);
-                    return;
-                }
-
-                var firstCategoryKey = Object.keys(window.galleryData)[0];
-                if (firstCategoryKey) {
-                    defaultCategory = firstCategoryKey;
-                    loadCategory(firstCategoryKey);
-                }
-            }, initialLoadDelayMs);
-
-            $('[data-gallery-category]').on('click', function (e) {
-                e.preventDefault();
-
-                var category = $(this).data('gallery-category');
-                if (!window.galleryData || !window.galleryData[category]) {
-                    return;
-                }
-
-                loadCategory(category);
-            });
-        });
     </script>
     <script src="~/js/view-session.js" asp-append-version="true"></script>
 </body>
